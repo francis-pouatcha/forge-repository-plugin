@@ -1,0 +1,8 @@
+package org.adorsys.forge.plugins.repo;
+
+import org.apache.deltaspike.data.api.EntityRepository;
+import org.apache.deltaspike.data.api.Repository;
+
+@Repository(forEntity=${entity.getName()}.class)
+public interface ${entity.getName()}${repoPrefix} extends EntityRepository<${entity.getName()}, ${idType}>{
+}
