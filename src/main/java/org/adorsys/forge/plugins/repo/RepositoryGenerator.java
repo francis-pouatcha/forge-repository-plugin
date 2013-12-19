@@ -29,7 +29,7 @@ public class RepositoryGenerator {
 		Map<Object, Object> map = new HashMap<Object, Object>();
 		map.put("entity", entity);
 		map.put("idType", idType);
-		map.put("repoPrefix", getRepoPrefix());
+		map.put("repoSuffix", getRepoSuffix());
 		String output = processor.processTemplate(map,
 				"org/adorsys/forge/plugins/repo/Repository.jv");
 		JavaInterface resource = JavaParser.parse(JavaInterface.class, output);
@@ -40,19 +40,19 @@ public class RepositoryGenerator {
 
 	private String getPackageName() {
 		if (project.hasFacet(RepositoryFacet.class)) {
-			return configuration
-					.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE);
-		} else {
+			String result = configuration.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE);
+			if(result!=null) return result;
+		} 
 			return java.getBasePackage() + ".repo";
-		}
+		
 	}
 	
-	private String getRepoPrefix(){
+	private String getRepoSuffix(){
 		if (project.hasFacet(RepositoryFacet.class)) {
-			return configuration
-					.getString(RepositoryFacet.REPO_REPO_CLASS_PREFIX);
-		} else {
-			return "Repository";
-		}
+			String suffix = configuration
+					.getString(RepositoryFacet.REPO_REPO_CLASS_SUFFIX);
+			if(suffix!=null) return suffix;
+		} 
+		return "Repository";
 	}
 }

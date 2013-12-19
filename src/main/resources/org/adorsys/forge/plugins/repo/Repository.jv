@@ -4,5 +4,5 @@ import org.apache.deltaspike.data.api.EntityRepository;
 import org.apache.deltaspike.data.api.Repository;
 
 @Repository(forEntity=${entity.getName()}.class)
-public interface ${entity.getName()}${repoPrefix} extends EntityRepository<${entity.getName()}, ${idType}>{
+public interface ${entity.getName()}${repoSuffix} extends EntityRepository<${entity.getName()}, ${idType}>{
 }

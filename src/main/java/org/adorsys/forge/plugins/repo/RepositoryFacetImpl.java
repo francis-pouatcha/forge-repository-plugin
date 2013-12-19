@@ -13,6 +13,7 @@ import org.jboss.forge.project.dependencies.DependencyInstaller;
 import org.jboss.forge.project.dependencies.ScopeType;
 import org.jboss.forge.project.facets.DependencyFacet;
 import org.jboss.forge.project.facets.MetadataFacet;
+import org.jboss.forge.project.facets.events.InstallFacets;
 import org.jboss.forge.shell.PromptType;
 import org.jboss.forge.shell.ShellPrompt;
 
@@ -44,31 +45,48 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 
 	}
 
+	
+	@Override
+	public boolean isInstalled() {
+		boolean installed = super.isInstalled();
+		if(!installed) return false;
+
+		// Make sure cofiguration param are available.
+		Configuration projectConfiguration = getProjectConfiguration();
+		Object pkg = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_PACKAGE);
+		Object suffix = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_SUFFIX);
+		return pkg != null && suffix != null;
+	}
+
 	@Override
 	public boolean install() {
-		for (Dependency requirement : getRequiredDependencies()) {
-			if (!getInstaller().isInstalled(project, requirement)) {
-				DependencyFacet deps = project.getFacet(DependencyFacet.class);
-				if (!deps.hasEffectiveManagedDependency(requirement)
-						&& !deps.hasDirectManagedDependency(JAVAEE6)) {
-					getInstaller().installManaged(project, JAVAEE6);
+		if (!project.hasFacet(RepositoryFacet.class)) {
+	
+			for (Dependency requirement : getRequiredDependencies()) {
+				if (!getInstaller().isInstalled(project, requirement)) {
+					DependencyFacet deps = project.getFacet(DependencyFacet.class);
+					if (!deps.hasEffectiveManagedDependency(requirement)
+							&& !deps.hasDirectManagedDependency(JAVAEE6)) {
+						getInstaller().installManaged(project, JAVAEE6);
+					}
+					getInstaller()
+							.install(project, requirement, ScopeType.PROVIDED);
 				}
-				getInstaller()
-						.install(project, requirement, ScopeType.PROVIDED);
 			}
 		}
+		
 		Configuration projectConfiguration = getProjectConfiguration();
 		String pkg = prompt.promptCommon(
 				"In what package do you want to store the Repository class?",
 				PromptType.JAVA_PACKAGE, project.getFacet(MetadataFacet.class)
 						.getTopLevelPackage() + ".repo");
 
-		String repoPrefix = prompt.prompt(
-				"How do you want to name the Repository prefix?", "Repository");
+		String repoSuffix = prompt.prompt(
+				"How do you want to name the Repository suffix?", "Repository");
 		projectConfiguration.setProperty(
 				RepositoryFacet.REPO_REPO_CLASS_PACKAGE, pkg);
 		projectConfiguration.setProperty(
-				RepositoryFacet.REPO_REPO_CLASS_PREFIX, repoPrefix);
+				RepositoryFacet.REPO_REPO_CLASS_SUFFIX, repoSuffix);
 		return super.install();
 	}
 

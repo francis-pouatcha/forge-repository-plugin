@@ -10,6 +10,8 @@ import javax.inject.Inject;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import org.jboss.forge.env.Configuration;
+import org.jboss.forge.env.ConfigurationFactory;
 import org.jboss.forge.parser.java.Field;
 import org.jboss.forge.parser.java.JavaClass;
 import org.jboss.forge.parser.java.JavaInterface;
@@ -61,14 +63,32 @@ public class RepositoryPlugin implements Plugin {
 	@Inject
 	private Event<RepoGeneratedResources> generatedEvent;
 
+	@Inject
+	private ConfigurationFactory configurationFactory;
+
 	@SetupCommand
 	public void setup(final PipeOut out) {
 		if (!project.hasFacet(RepositoryFacet.class)) {
 			request.fire(new InstallFacets(RepositoryFacet.class));
+		} else {
+			Configuration projectConfiguration = getProjectConfiguration();
+			Object pkg = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_PACKAGE);
+			Object suffix = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_SUFFIX);
+			if (pkg == null || suffix == null) {
+				request.fire(new InstallFacets(RepositoryFacet.class));
+			}
 		}
+		
 		if (project.hasFacet(RepositoryFacet.class)) {
-			ShellMessages.success(out, "Deltaspike data service installed.");
-		}
+//			Configuration projectConfiguration = getProjectConfiguration();
+//			Object pkg = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_PACKAGE);
+//			Object suffix = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_SUFFIX);
+//			if (pkg != null && suffix != null) {
+				ShellMessages.success(out, "Repository service installed.");
+			} else {
+				ShellMessages.error(out, "Repository service could not be installed.");
+			}
+//		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -182,4 +202,14 @@ public class RepositoryPlugin implements Plugin {
 					+ entity.getQualifiedName() + "]");
 		}
 	}
+
+	private Configuration configuration;
+
+	private Configuration getProjectConfiguration() {
+		if (this.configuration == null) {
+			this.configuration = configurationFactory.getProjectConfig(project);
+		}
+		return this.configuration;
+	}
+
 }
