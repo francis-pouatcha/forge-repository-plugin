@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.adorsys.forge.plugins.utils.BaseJavaEEFacet;
 import org.jboss.forge.env.Configuration;
 import org.jboss.forge.env.ConfigurationFactory;
 import org.jboss.forge.project.dependencies.Dependency;
@@ -13,7 +14,6 @@ import org.jboss.forge.project.dependencies.DependencyInstaller;
 import org.jboss.forge.project.dependencies.ScopeType;
 import org.jboss.forge.project.facets.DependencyFacet;
 import org.jboss.forge.project.facets.MetadataFacet;
-import org.jboss.forge.project.facets.events.InstallFacets;
 import org.jboss.forge.shell.PromptType;
 import org.jboss.forge.shell.ShellPrompt;
 

@@ -8,6 +8,7 @@
   <properties>
     <freemarker.version>2.3.19</freemarker.version>
     <forge.api.version>1.4.3.Final</forge.api.version>
+    <version.arquillian_core>1.1.2.Final</version.arquillian_core>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -38,21 +39,22 @@
       </dependency>
       <dependency>
         <groupId>org.jboss.forge</groupId>
-        <artifactId>forge-test-harness</artifactId>
-        <version>${forge.api.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.forge</groupId>
-        <artifactId>forge-shell</artifactId>
-        <version>${forge.api.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.forge</groupId>
         <artifactId>forge-javaee-impl</artifactId>
         <version>${forge.api.version}</version>
-        <scope>provided</scope>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.arquillian</groupId>
+        <artifactId>arquillian-bom</artifactId>
+        <version>${version.arquillian_core}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -83,19 +85,23 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.junit</groupId>
+      <artifactId>arquillian-junit-container</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.jboss.forge</groupId>
       <artifactId>forge-javaee-impl</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.jboss.forge</groupId>
-      <artifactId>forge-test-harness</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.forge</groupId>
-      <artifactId>forge-shell</artifactId>
-      <scope>provided</scope>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.1</version>
     </dependency>
   </dependencies>
   <repositories>
@@ -118,4 +124,30 @@
       </plugin>
     </plugins>
   </build>
+   <profiles>
+    <profile>
+      <id>arq-jboss_as_remote_7.x</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.14.1</version>
+            <configuration>
+              <systemPropertyVariables>
+                <arquillian.launch>JBOSS_AS_REMOTE_7.X</arquillian.launch>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.jboss.as</groupId>
+          <artifactId>jboss-as-arquillian-container-remote</artifactId>
+          <version>7.2.0.Final</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+  
 </project>

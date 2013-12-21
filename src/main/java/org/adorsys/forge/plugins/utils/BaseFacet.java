@@ -1,4 +1,4 @@
-package org.adorsys.forge.plugins.repo;
+package org.adorsys.forge.plugins.utils;
 
 import org.jboss.forge.project.Facet;
 import org.jboss.forge.project.Project;

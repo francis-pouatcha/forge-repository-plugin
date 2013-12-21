@@ -1,4 +1,4 @@
-package org.adorsys.forge.plugins.repo;
+package org.adorsys.forge.plugins.utils;
 
 import java.io.IOException;
 import java.io.StringWriter;

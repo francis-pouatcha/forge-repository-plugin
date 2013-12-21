@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
 import org.jboss.forge.env.Configuration;
 import org.jboss.forge.parser.JavaParser;
 import org.jboss.forge.parser.java.JavaClass;

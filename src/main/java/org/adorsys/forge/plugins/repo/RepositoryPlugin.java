@@ -22,16 +22,21 @@ import org.jboss.forge.parser.java.util.Types;
 import org.jboss.forge.project.Project;
 import org.jboss.forge.project.facets.JavaSourceFacet;
 import org.jboss.forge.project.facets.events.InstallFacets;
+import org.jboss.forge.resources.DirectoryResource;
 import org.jboss.forge.resources.Resource;
+import org.jboss.forge.resources.ResourceFilter;
 import org.jboss.forge.resources.java.JavaResource;
+import org.jboss.forge.shell.PromptType;
 import org.jboss.forge.shell.ShellMessages;
 import org.jboss.forge.shell.ShellPrompt;
 import org.jboss.forge.shell.plugins.Alias;
 import org.jboss.forge.shell.plugins.Command;
 import org.jboss.forge.shell.plugins.Current;
+import org.jboss.forge.shell.plugins.Help;
 import org.jboss.forge.shell.plugins.Option;
 import org.jboss.forge.shell.plugins.PipeOut;
 import org.jboss.forge.shell.plugins.Plugin;
+import org.jboss.forge.shell.plugins.RequiresFacet;
 import org.jboss.forge.shell.plugins.RequiresProject;
 import org.jboss.forge.shell.plugins.SetupCommand;
 import org.jboss.forge.spec.javaee.EJBFacet;
@@ -41,11 +46,13 @@ import org.jboss.forge.spec.javaee.PersistenceFacet;
 /**
  *
  */
-@Alias("repo")
+@Alias("repogen")
 @RequiresProject
+@RequiresFacet({ RepositoryFacet.class, JavaSourceFacet.class })
+@Help("This plugin generates jpa repository classes for jap entities.")
 public class RepositoryPlugin implements Plugin {
-	@Inject
-	private ShellPrompt prompt;
+//	@Inject
+//	private ShellPrompt prompt;
 
 	@Inject
 	private Project project;
@@ -65,6 +72,9 @@ public class RepositoryPlugin implements Plugin {
 
 	@Inject
 	private ConfigurationFactory configurationFactory;
+	
+	@Inject
+	JavaSourceFacet java;	
 
 	@SetupCommand
 	public void setup(final PipeOut out) {
@@ -72,29 +82,29 @@ public class RepositoryPlugin implements Plugin {
 			request.fire(new InstallFacets(RepositoryFacet.class));
 		} else {
 			Configuration projectConfiguration = getProjectConfiguration();
-			Object pkg = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_PACKAGE);
-			Object suffix = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_SUFFIX);
+			Object pkg = projectConfiguration
+					.getProperty(RepositoryFacet.REPO_REPO_CLASS_PACKAGE);
+			Object suffix = projectConfiguration
+					.getProperty(RepositoryFacet.REPO_REPO_CLASS_SUFFIX);
 			if (pkg == null || suffix == null) {
 				request.fire(new InstallFacets(RepositoryFacet.class));
 			}
 		}
-		
+
 		if (project.hasFacet(RepositoryFacet.class)) {
-//			Configuration projectConfiguration = getProjectConfiguration();
-//			Object pkg = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_PACKAGE);
-//			Object suffix = projectConfiguration.getProperty(RepositoryFacet.REPO_REPO_CLASS_SUFFIX);
-//			if (pkg != null && suffix != null) {
-				ShellMessages.success(out, "Repository service installed.");
-			} else {
-				ShellMessages.error(out, "Repository service could not be installed.");
-			}
-//		}
+			ShellMessages.success(out, "Repository service installed.");
+		} else {
+			ShellMessages.error(out,
+					"Repository service could not be installed.");
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Command(value = "new-repository", help = "creates a new Repository for an existing @Entity object.")
-	public void newRepository(final PipeOut out,
-			@Option(required = false) JavaResource... targets)
+	public void newRepository(@Option(name = "jpaClass", required = false, type = PromptType.JAVA_CLASS) JavaResource jpaClass,
+			@Option(name = "jpaPackage", required = false, type = PromptType.FILE_PATH) Resource<?> jpaPackage,
+			@Option(name="overrride", flagOnly=true, required=false ) boolean override,
+			final PipeOut out)
 			throws FileNotFoundException {
 		/*
 		 * Make sure we have all the features we need for this to work.
@@ -104,22 +114,47 @@ public class RepositoryPlugin implements Plugin {
 			request.fire(new InstallFacets(true, JTAFacet.class,
 					EJBFacet.class, PersistenceFacet.class));
 		}
-
-		if (((targets == null) || (targets.length < 1))
-				&& (currentResource instanceof JavaResource)) {
-			targets = new JavaResource[] { (JavaResource) currentResource };
+		
+		List<JavaResource> targetsToProcess = new ArrayList<JavaResource>();
+		
+		if(jpaClass!=null){
+			targetsToProcess.add(jpaClass);
+		}
+		
+		if(jpaPackage!=null){
+			if(jpaPackage instanceof JavaResource){
+				JavaResource jr = (JavaResource) jpaPackage;
+				selectTargets(out, targetsToProcess, jr);
+			} else if (jpaPackage instanceof DirectoryResource){
+				DirectoryResource dr = (DirectoryResource) jpaPackage;
+				selectTargets(out, targetsToProcess, dr);
+			} else {
+				ShellMessages.warn(out,
+						"Provided class is neiter a java package nor a java file");
+			}
+		}
+		if(jpaClass==null && jpaPackage==null && currentResource!=null){
+			if(currentResource instanceof JavaResource){
+				JavaResource jr = (JavaResource) jpaPackage;
+				selectTargets(out, targetsToProcess, jr);
+			} else if (currentResource instanceof DirectoryResource){
+				DirectoryResource dr = (DirectoryResource) jpaPackage;
+				selectTargets(out, targetsToProcess, dr);				
+			} else {
+				ShellMessages.warn(out,
+						"Current resource is neiter a java package nor a java file");
+			}
 		}
 
-		List<JavaResource> javaTargets = selectTargets(out, targets);
-		if (javaTargets.isEmpty()) {
-			ShellMessages.error(out,
-					"Must specify a domain @Entity on which to operate.");
+		if (targetsToProcess.isEmpty()) {
+			ShellMessages.info(out,
+					"No class with annotation @Entity found to operate on.");
 			return;
 		}
 
 		final JavaSourceFacet java = project.getFacet(JavaSourceFacet.class);
 		RepoGeneratedResources repoGeneratedResources = new RepoGeneratedResources();
-		for (JavaResource jr : javaTargets) {
+		for (JavaResource jr : targetsToProcess) {
 
 			JavaClass entity = (JavaClass) (jr).getJavaSource();
 
@@ -140,18 +175,20 @@ public class RepositoryPlugin implements Plugin {
 
 			repoGeneratedResources.addToEntities(jr);
 
-			if (!java.getJavaResource(resource).exists()
-					|| prompt.promptBoolean("Repository ["
-							+ resource.getQualifiedName()
-							+ "] already, exists. Overwrite?")) {
+			if(!java.getJavaResource(resource).exists()){
 				repoGeneratedResources.addToRepositories(java
 						.saveJavaSource(resource));
 				ShellMessages.success(out, "Generated repository for ["
 						+ entity.getQualifiedName() + "]");
-
-			} else
+			} else if (override){
+				repoGeneratedResources.addToRepositories(java
+						.saveJavaSource(resource));
+				ShellMessages.success(out, "Generated repository for ["
+						+ entity.getQualifiedName() + "] ovveriding existing file.");
+			} else {
 				ShellMessages.info(out, "Aborted repository generation for ["
-						+ entity.getQualifiedName() + "]");
+						+ entity.getQualifiedName() + "] Repository file exists.");
+			}
 		}
 		if (!repoGeneratedResources.getEntities().isEmpty()) {
 			generatedEvent.fire(repoGeneratedResources);
@@ -172,27 +209,56 @@ public class RepositoryPlugin implements Plugin {
 		return "Object";
 	}
 
-	private List<JavaResource> selectTargets(final PipeOut out,
-			Resource<?>[] targets) throws FileNotFoundException {
-		List<JavaResource> results = new ArrayList<JavaResource>();
-		if (targets == null) {
-			targets = new Resource<?>[] {};
+	private void selectTargets(final PipeOut out,List<JavaResource> ressourcesToProcess,
+			JavaResource javaResource) throws FileNotFoundException {
+		
+		if(ressourcesToProcess.contains(javaResource)) return;
+		
+		JavaSource<?> entity = javaResource.getJavaSource();
+		if (entity instanceof JavaClass) {
+			if (entity.hasAnnotation(Entity.class)) {
+				ressourcesToProcess.add(javaResource);
+			} else {
+				displaySkippingResourceMsg(out, entity);
+			}
+		} else {
+			displaySkippingResourceMsg(out, entity);
 		}
-		for (Resource<?> r : targets) {
-			if (r instanceof JavaResource) {
-				JavaSource<?> entity = ((JavaResource) r).getJavaSource();
-				if (entity instanceof JavaClass) {
-					if (entity.hasAnnotation(Entity.class)) {
-						results.add((JavaResource) r);
-					} else {
-						displaySkippingResourceMsg(out, entity);
+	}
+
+	private void selectTargets(final PipeOut out,List<JavaResource> ressourcesToProcess,
+			DirectoryResource directoryResource) throws FileNotFoundException {
+		
+		DirectoryResource sourceFolder = java.getSourceFolder();
+		if(!directoryResource.getFullyQualifiedName().startsWith(sourceFolder.getFullyQualifiedName())){
+			ShellMessages.warn(out, "selected directory is not in the source folder. Will not be processed. ["
+					+ directoryResource.getFullyQualifiedName() + "]");
+			return;
+		}
+		List<Resource<?>> javaResources = directoryResource
+				.listResources(new ResourceFilter() {
+					@Override
+					public boolean accept(final Resource<?> resource) {
+						return resource instanceof JavaResource;
 					}
-				} else {
-					displaySkippingResourceMsg(out, entity);
-				}
+				});
+		if (javaResources != null) {
+			for (Resource<?> resource2 : javaResources) {
+				JavaResource jr = (JavaResource) resource2;
+				selectTargets(out, ressourcesToProcess, jr);
 			}
 		}
-		return results;
+		List<Resource<?>> dirResources = directoryResource
+				.listResources(new ResourceFilter() {
+					@Override
+					public boolean accept(final Resource<?> resource) {
+						return resource instanceof DirectoryResource;
+					}
+				});
+		for (Resource<?> resource2 : dirResources) {
+			DirectoryResource dr = (DirectoryResource) resource2;
+			selectTargets(out, ressourcesToProcess, dr);
+		}
 	}
 
 	private void displaySkippingResourceMsg(final PipeOut out,

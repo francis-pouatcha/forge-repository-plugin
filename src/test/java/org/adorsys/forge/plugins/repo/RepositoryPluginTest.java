@@ -4,22 +4,24 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.adorsys.forge.plugins.repo.RepositoryPlugin;
-import org.adorsys.forge.plugins.repo.RepositoryGenerator;
+import org.adorsys.forge.plugins.util.SingletonAbstractShellTest;
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.forge.parser.JavaParser;
 import org.jboss.forge.parser.java.JavaClass;
 import org.jboss.forge.parser.java.JavaInterface;
 import org.jboss.forge.project.Project;
 import org.jboss.forge.project.facets.JavaSourceFacet;
 import org.jboss.forge.spec.javaee.PersistenceFacet;
-import org.jboss.forge.test.AbstractShellTest;
-import org.jboss.forge.test.SingletonAbstractShellTest;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@Ignore
+@RunWith(Arquillian.class)
 public class RepositoryPluginTest extends SingletonAbstractShellTest {
 
 	@Inject
@@ -27,7 +29,7 @@ public class RepositoryPluginTest extends SingletonAbstractShellTest {
 
 	@Deployment
 	public static JavaArchive getDeployment() {
-		return AbstractShellTest.getDeployment().addPackages(true,
+		return SingletonAbstractShellTest.getDeployment().addPackages(true,
 				RepositoryPlugin.class.getPackage());
 	}
 
@@ -48,7 +50,7 @@ public class RepositoryPluginTest extends SingletonAbstractShellTest {
 	@Test
 	public void testSetup() throws Exception {
 		getShell().execute("set ACCEPT_DEFAULTS true");
-		getShell().execute("repo setup");
+		getShell().execute("repogen setup");
 	}
 
 	@SuppressWarnings("unused")
