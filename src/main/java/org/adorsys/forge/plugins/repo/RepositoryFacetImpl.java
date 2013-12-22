@@ -39,9 +39,9 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 	protected List<Dependency> getRequiredDependencies() {
 		return Arrays
 				.asList((Dependency) DependencyBuilder
-						.create("org.apache.deltaspike.modules:deltaspike-data-module-api:0.5:compile"),
+						.create("org.apache.deltaspike.modules:deltaspike-data-module-api:0.5"),
 						(Dependency) DependencyBuilder
-								.create("org.apache.deltaspike.modules:deltaspike-data-module-impl:0.5:runtime"));
+								.create("org.apache.deltaspike.modules:deltaspike-data-module-impl:0.5"));
 
 	}
 
@@ -105,11 +105,3 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 	}
 
 }
-// project add-dependency
-// org.hibernate:hibernate-jpamodelgen:1.3.0.Final:provided;
-// project add-managed-dependency
-// org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-bom:2.0.1:import:pom;
-// project add-dependency
-// org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-depchain:2.0.1:test:pom;
-// project add-dependency ;
-// project add-dependency ;

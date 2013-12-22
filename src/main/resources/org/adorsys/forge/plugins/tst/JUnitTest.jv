@@ -30,9 +30,14 @@ public class ${ClassToTest}Test {
     public static WebArchive createDeployment() {
 
 
-	   File[] libs = Maven.resolver()
-			   .loadPomFromFile("pom.xml").importRuntimeDependencies()
-			   .resolve().withTransitivity().asFile();
+		File[] libs = new File[]{};
+		try {
+			libs = Maven.resolver().loadPomFromFile("pom.xml")
+					.importCompileAndRuntimeDependencies().resolve()
+					.withTransitivity().asFile();
+		} catch (Exception ex) {
+			// Noop
+		}
 	    
 	   WebArchive webArchive =  ShrinkWrap.create(WebArchive.class, "test.war")
 			<#list packagesToImport as packageToImport>
