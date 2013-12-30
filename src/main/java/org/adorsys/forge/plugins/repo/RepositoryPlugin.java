@@ -135,10 +135,10 @@ public class RepositoryPlugin implements Plugin {
 		}
 		if(jpaClass==null && jpaPackage==null && currentResource!=null){
 			if(currentResource instanceof JavaResource){
-				JavaResource jr = (JavaResource) jpaPackage;
+				JavaResource jr = (JavaResource) currentResource;
 				selectTargets(out, targetsToProcess, jr);
 			} else if (currentResource instanceof DirectoryResource){
-				DirectoryResource dr = (DirectoryResource) jpaPackage;
+				DirectoryResource dr = (DirectoryResource) currentResource;
 				selectTargets(out, targetsToProcess, dr);				
 			} else {
 				ShellMessages.warn(out,

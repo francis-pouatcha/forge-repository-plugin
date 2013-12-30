@@ -31,7 +31,7 @@ import org.jboss.forge.shell.plugins.SetupCommand;
 
 @Alias("repotest")
 @RequiresProject
-@RequiresFacet({ JavaSourceFacet.class })
+@RequiresFacet({ JavaSourceFacet.class, RepoTestFacet.class })
 @Help("This plugin will help you setting up Arquillian tests.")
 public class RepoTestPlugin implements Plugin {
 

@@ -39,14 +39,14 @@ public class ${ClassToTest}Test {
 			// Noop
 		}
 	    
-	   WebArchive webArchive =  ShrinkWrap.create(WebArchive.class, "test.war")
+	   WebArchive webArchive =  ShrinkWrap.create(WebArchive.class, "${classToTest}.war")
 			<#list packagesToImport as packageToImport>
 	   		.addPackage("${packageToImport}")
 			</#list>
             .addAsManifestResource("META-INF/persistence.xml", "persistence.xml")
             .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsManifestResource("META-INF/validation.xml", "validation.xml")
-	   		//.addAsDirectory("src/main/webapp")
+            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
 	   		.addAsLibraries(libs)
 	   		.merge(ShrinkWrap.create(GenericArchive.class)
 	   				.as(ExplodedImporter.class)

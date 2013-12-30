@@ -31,17 +31,21 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 	private Configuration configuration;
 
 	@Inject
-	public RepositoryFacetImpl(DependencyInstaller installer) {
+	public RepositoryFacetImpl(final DependencyInstaller installer) {
 		super(installer);
 	}
 
 	@Override
 	protected List<Dependency> getRequiredDependencies() {
-		return Arrays
-				.asList((Dependency) DependencyBuilder
-						.create("org.apache.deltaspike.modules:deltaspike-data-module-api:0.5"),
-						(Dependency) DependencyBuilder
-								.create("org.apache.deltaspike.modules:deltaspike-data-module-impl:0.5"));
+		return Arrays.asList(
+					(Dependency) DependencyBuilder.create()
+				.setGroupId("org.apache.deltaspike.modules")
+				.setArtifactId("deltaspike-data-module-api")
+				.setVersion("0.5"),
+				(Dependency) DependencyBuilder.create()
+					.setGroupId("org.apache.deltaspike.modules")
+					.setArtifactId("deltaspike-data-module-impl")
+					.setVersion("0.5"));
 
 	}
 
@@ -70,7 +74,7 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 						getInstaller().installManaged(project, JAVAEE6);
 					}
 					getInstaller()
-							.install(project, requirement, ScopeType.PROVIDED);
+							.install(project, requirement, ScopeType.COMPILE);
 				}
 			}
 		}
