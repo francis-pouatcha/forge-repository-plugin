@@ -14,11 +14,14 @@ This plugin is not yet uploaded to the forge plugin repository. In order to use 
 4. forge> new-project --named adspc --topLevelPackage org.adorsys.adspc --finalName adspc
 5. forge> as7 setup
 7. forge> persistence setup --provider HIBERNATE --container JBOSS_AS7
+8. forge> validation setup
 8. forge> entity --named Site --package ~.jpa --idStrategy AUTO
 9. forge> field string --named displayName
 10. forge> reporest setup --activatorType APP_CLASS
+11. forge> cd ~~
 11. forge> reporest endpoint-from-entity --jpaPackage src/main/java/org/adorsys/adspc/
 12. forge> repotest setup
+13. forge> cd ~~
 13. forge> repotest create-test --packages src/main/java/org/adorsys/adspc/
 14. forge> as7 start
 15. forge> mvn clean install -P arq-jboss_as_remote_7.x
