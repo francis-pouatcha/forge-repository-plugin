@@ -1,0 +1,143 @@
+package org.adorsys.forge.plugins.rest;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
+
+/**
+ * 
+ */
+@Stateless
+@Path("${resourcePath}")
+public class ${entityEndpointName} {
+
+	@Inject
+	private ${entityRepoName} repository;
+
+	@POST
+   @Consumes("${contentType}")
+	public Response create(${entityName} entity) {
+		repository.save(entity);
+		return Response.created(
+				UriBuilder.fromResource(${entityEndpointName}.class)
+						.path(String.valueOf(entity.${getIdStatement})).build()).build();
+	}
+
+	@DELETE
+	@Path("/{id:[0-9][0-9]*}")
+   public Response deleteById(@PathParam("id") ${idType} id){
+		${entityName} entity = repository.findBy(id);
+		if (entity == null) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+		repository.remove(entity);
+		return Response.noContent().build();
+	}
+
+	@PUT
+	@Path("/{id:[0-9][0-9]*}")
+    @Consumes("${contentType}")
+	public Response update(${entityName} entity) {
+		repository.save(entity);
+		return Response.noContent().build();
+	}
+
+    @GET
+    @Path("/{id:[0-9][0-9]*}")
+    @Produces("${contentType}")
+    public Response findById(@PathParam("id") ${idType} id){
+		${entityName} entity = repository.findBy(id);
+
+		if (entity == null) {
+			return Response.status(Status.NOT_FOUND).build();
+		}
+		return Response.ok(entity).build();
+	}
+
+	@GET
+    @Produces("${contentType}")
+	public List<${entityName}> listAll() {
+		return repository.findAll();
+	}
+
+	@GET
+    @Produces("${contentType}")
+	public List<${entityName}> listAll(@QueryParam("start") int start,
+			@QueryParam("max") int max) {
+		return repository.findAll(start, max);
+	}
+	
+	@POST
+    @Produces("${contentType}")
+    @Consumes("${contentType}")
+	public List<${entityName}> findBy(${entitySearchName} searchInput) {
+		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
+		return repository.findBy(searchInput.getEntity(), attributes);
+	}
+
+
+	@POST
+    @Produces("${contentType}")
+    @Consumes("${contentType}")
+	public List<${entityName}> findBy(${entitySearchName} searchInput, @QueryParam("start") int start,
+			@QueryParam("max") int max) {
+		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
+		return repository.findBy(searchInput.getEntity(), start, max, attributes);
+	}
+
+	@POST
+    @Produces("${contentType}")
+    @Consumes("${contentType}")
+	public List<${entityName}> findByLike(${entitySearchName} searchInput) {
+		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
+		return repository.findByLike(searchInput.getEntity(), attributes);
+	}
+
+
+	@POST
+    @Produces("${contentType}")
+    @Consumes("${contentType}")
+	public List<${entityName}> findByLike(${entitySearchName} searchInput, @QueryParam("start") int start,
+			@QueryParam("max") int max) {
+		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
+		return repository.findByLike(searchInput.getEntity(), start, max, attributes);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private SingularAttribute<${entityName}, ?>[] readSeachAttributes(
+			${entitySearchName} searchInput) {
+		List<String> fieldNames = searchInput.getFieldNames();
+		List<SingularAttribute<${entityName}, ?>> result = new ArrayList<SingularAttribute<${entityName},?>>();
+		for (String fieldName : fieldNames) {
+			Field[] fields = ${entityName}_.class.getFields();
+			for (Field field : fields) {
+				if(field.getName().equals(fieldName)){
+					try {
+						result.add((SingularAttribute<${entityName}, ?>) field.get(null));
+					} catch (IllegalArgumentException e) {
+						throw new IllegalStateException(e);
+					} catch (IllegalAccessException e) {
+						throw new IllegalStateException(e);
+					}
+				}
+			}
+		}
+		return result.toArray(new SingularAttribute[result.size()]);
+	}
+}

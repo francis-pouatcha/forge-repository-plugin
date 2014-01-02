@@ -56,6 +56,11 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.apache.deltaspike.modules</groupId>
+        <artifactId>deltaspike-data-module-api</artifactId>
+        <version>0.5</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
@@ -77,6 +82,12 @@
     <dependency>
       <groupId>org.jboss.forge</groupId>
       <artifactId>forge-javaee-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.forge</groupId>
+      <artifactId>forge-maven-api</artifactId>
+      <version>${forge.api.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -102,6 +113,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.deltaspike.modules</groupId>
+      <artifactId>deltaspike-data-module-api</artifactId>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
   <repositories>

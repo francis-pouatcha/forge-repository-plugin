@@ -1,0 +1,73 @@
+package $package;
+import java.io.File;
+
+import javax.inject.Inject;
+
+<#list packagesToImport as packageToImport>
+import ${packageToImport}.*;
+</#list>
+
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.Filters;
+import org.jboss.shrinkwrap.api.GenericArchive;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.importer.ExplodedImporter;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.descriptor.api.Descriptors;
+import org.jboss.shrinkwrap.descriptor.api.persistence20.PersistenceDescriptor;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@RunWith(Arquillian.class)
+public class ${ClassToTest}Test
+{
+
+   @Inject
+   private ${ClassToTest} ${classToTest};
+
+   @Deployment
+   public static WebArchive createDeployment()
+   {
+
+      File[] libs = new File[] {};
+      try
+      {
+         libs = Maven.resolver().loadPomFromFile("pom.xml")
+               .importCompileAndRuntimeDependencies().resolve()
+               .withTransitivity().asFile();
+      }
+      catch (Exception ex)
+      {
+         // Noop
+      }
+
+      PersistenceDescriptor persistenceXml = Descriptors.importAs(PersistenceDescriptor.class)  
+              .fromFile(new File("src/main/resources/META-INF/persistence.xml"));
+
+      WebArchive webArchive = ShrinkWrap.create(WebArchive.class, "${classToTest}.war")
+			<#list packagesToImport as packageToImport>
+	   		.addPackage("${packageToImport}")
+			</#list>
+            .addAsResource(new StringAsset(persistenceXml.exportAsString()), "META-INF/persistence.xml")  
+            .addAsManifestResource("META-INF/validation.xml", "validation.xml")
+            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+            .addAsLibraries(libs)
+            .merge(ShrinkWrap.create(GenericArchive.class)
+                  .as(ExplodedImporter.class)
+                  .importDirectory("src/main/webapp")
+                  .as(GenericArchive.class), "/", Filters.includeAll());
+      return webArchive;
+   }
+
+   @Test
+   public void should_be_deployed()
+   {
+      Assert.assertNotNull(${classToTest});
+   }
+}

@@ -1,0 +1,42 @@
+package org.adorsys.forge.plugins.jpa;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * Holds an entity and corresponding field descriptions 
+ * for a search by example call.
+ * 
+ * @author francis pouatcha
+ *
+ */
+@XmlRootElement
+public class ${entityName}SearchInput {
+
+	/**
+	 * The entity holding search inputs.
+	 */
+	private ${entityName} entity;
+	
+	/**
+	 * The field names to be included in the search.
+	 */
+	private List<String> fieldNames = new ArrayList<String>();
+
+	public ${entityName} getEntity() {
+		return entity;
+	}
+
+	public void setEntity(${entityName} entity) {
+		this.entity = entity;
+	}
+
+	public List<String> getFieldNames() {
+		return fieldNames;
+	}
+
+	public void setFieldNames(List<String> fieldNames) {
+		this.fieldNames = fieldNames;
+	}
+}

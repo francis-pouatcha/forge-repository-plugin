@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 
 import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
+import org.apache.deltaspike.data.api.Repository;
 import org.jboss.forge.parser.JavaParser;
 import org.jboss.forge.parser.java.Import;
 import org.jboss.forge.parser.java.JavaClass;
@@ -33,11 +35,11 @@ public class JUnitTestGenerator {
 	JavaSourceFacet java;
 
 	public JavaClass generateFrom(JavaSource<?> sourceOfClassToTest, final PipeOut out) {
-		String repositoryAnnotation = "org.apache.deltaspike.data.api.Repository";
-		if(!sourceOfClassToTest.hasAnnotation(repositoryAnnotation)){
+//		String repositoryAnnotation = "org.apache.deltaspike.data.api.Repository";
+		if(!(sourceOfClassToTest.hasAnnotation(Repository.class) || sourceOfClassToTest.hasAnnotation(Stateless.class))){
 			ShellMessages.info(out,
 					"Specified package " + sourceOfClassToTest.getQualifiedName()
-					+ " does not have the annotation "+repositoryAnnotation+". No test will be generated for this class.");
+					+ " does not have the annotation "+Repository.class.getName()+". No test will be generated for this class.");
 			return null;
 		}
 
@@ -67,7 +69,7 @@ public class JUnitTestGenerator {
 		map.put("ClassToTest", sourceOfClassToTest.getName());
 		map.put("classToTest", sourceOfClassToTest.getName().toLowerCase());
 		String output = processor.processTemplate(map,
-				"org/adorsys/forge/plugins/tst/JUnitTest.jv");
+				"org/adorsys/forge/plugins/tst/JunitTest.jv");
 		JavaClass resource = JavaParser.parse(JavaClass.class, output);
 		resource.setPackage(sourceOfClassToTest.getPackage()+".test");
 		return resource;
