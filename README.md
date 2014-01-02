@@ -6,10 +6,7 @@ Forge plugin for the generation of repository design pattern classes based on ap
 This plugin is not yet uploaded to the forge plugin repository. In order to use this plugin:
 
 1. clone the plugin project
-2. start forge
-
-2a. install the plugin using: forge source-plugin $PATH_TO_PTOJECT/forge-source-plugin
-
+2. start forge. Then install the plugin using: forge source-plugin $PATH_TO_PTOJECT/forge-source-plugin
 3. create a project containing JPA entity beans
 4. forge> new-project --named adspc --topLevelPackage org.adorsys.adspc --finalName adspc
 5. forge> as7 setup
