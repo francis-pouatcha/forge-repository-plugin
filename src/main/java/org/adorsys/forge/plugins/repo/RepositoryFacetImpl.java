@@ -1,5 +1,6 @@
 package org.adorsys.forge.plugins.repo;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,6 +22,8 @@ import org.jboss.forge.project.dependencies.ScopeType;
 import org.jboss.forge.project.facets.DependencyFacet;
 import org.jboss.forge.project.facets.JavaSourceFacet;
 import org.jboss.forge.project.facets.MetadataFacet;
+import org.jboss.forge.project.facets.ResourceFacet;
+import org.jboss.forge.resources.FileResource;
 import org.jboss.forge.shell.PromptType;
 import org.jboss.forge.shell.ShellPrompt;
 
@@ -122,32 +125,16 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 		} catch (FileNotFoundException e) {
 			throw new IllegalStateException(e);
 		}
-//		
-//		// extend the maven src path with jpa model gen classes
-//		MavenPluginFacet mavenPluginFacet = project.getFacet(MavenPluginFacet.class);
-//		mavenPluginFacet.addPlugin(MavenPluginBuilder
-//				.create()
-//				.setDependency((Dependency) DependencyBuilder.create()
-//						.setGroupId("org.codehaus.mojo")
-//						.setArtifactId("build-helper-maven-plugin"))
-//				.addExecution(ExecutionBuilder.create()
-//							.setId("add-source")
-//							.setPhase("generate-sources")
-//							.addGoal("add-source")
-//							.setConfig(ConfigurationBuilder.create()
-//									.addConfigurationElement(ConfigurationElementBuilder.create()
-//											.setName("sources")
-//											.addChild(
-//													ConfigurationElementBuilder.create()
-//													.setName("source")
-//													.addChild("${basedir}/target/generated-sources/annotations")
-//													
-//											)
-//									)
-//							)
-//				)
-//				
-//				);
+		
+		String beansXMLRelativeFileName = "META-INF" + File.separator + "beans.xml";
+		ResourceFacet resources = project.getFacet(ResourceFacet.class);
+		FileResource<?> beansXmlFile = (FileResource<?>) resources.getResourceFolder().getChild(beansXMLRelativeFileName);
+		if(!beansXmlFile.exists()){
+			map = new HashMap<Object, Object>();
+			output = processor.processTemplate(map,
+					"org/adorsys/forge/plugins/rest/beans.xml.jv");
+			resources.createResource(output.toCharArray(), beansXMLRelativeFileName);
+		}
 		
 		return super.install();
 	}

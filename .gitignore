@@ -9,3 +9,5 @@
 .forge_settings
 .project
 .settings/
+.DS_Store
+.factorypath
