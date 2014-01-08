@@ -127,7 +127,7 @@ public class ${entityEndpointName} {
 	@Path("/countByLike")
     @Consumes("${contentType}")
 	public Long countByLike(${entitySearchName} searchInput) {
-		SingularAttribute<Person, ?>[] attributes = readSeachAttributes(searchInput);
+		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
 		return repository.countLike(searchInput.getEntity(), attributes);
 	}
 
