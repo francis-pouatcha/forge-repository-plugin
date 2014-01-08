@@ -18,7 +18,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
+
+import org.adorsys.person.jpa.Person;
+import org.adorsys.person.jpa.PersonSearchInput;
+import org.adorsys.person.jpa.Person_;
+import org.adorsys.person.repo.PersonRepository;
 
 /**
  * 
@@ -31,31 +35,42 @@ public class ${entityEndpointName} {
 	private ${entityRepoName} repository;
 
 	@POST
-   @Consumes("${contentType}")
-	public Response create(${entityName} entity) {
+    @Consumes("${contentType}")
+	@Produces("application/xml")
+	public ${entityName} create(${entityName} entity) {
+	    /*
+	     * This avoids setting ids from outside. If not create and save will be very
+	     * similar, and an entity could be mistakenly overriden by just 
+	     * changing it's id. 
+	     */
+	    entity.setId(null);
 		repository.save(entity);
-		return Response.created(
-				UriBuilder.fromResource(${entityEndpointName}.class)
-						.path(String.valueOf(entity.${getIdStatement})).build()).build();
+		return entity;
 	}
 
 	@DELETE
 	@Path("/{id:[0-9][0-9]*}")
-   public Response deleteById(@PathParam("id") ${idType} id){
+   	public Response deleteById(@PathParam("id") ${idType} id){
 		${entityName} entity = repository.findBy(id);
 		if (entity == null) {
 			return Response.status(Status.NOT_FOUND).build();
 		}
-		repository.remove(entity);
-		return Response.noContent().build();
+		/*
+		 * TODO test if entity listener will be invoked upon deleting through
+		 * direct jpql queries.
+		 * repository.remove(entity);
+		 */
+      	repository.removeJPQL(entity.getId());
+		return Response.ok(entity).build();
 	}
 
 	@PUT
 	@Path("/{id:[0-9][0-9]*}")
+	@Produces("application/xml")
     @Consumes("${contentType}")
-	public Response update(${entityName} entity) {
-		repository.save(entity);
-		return Response.noContent().build();
+	public ${entityName} update(${entityName} entity) {
+		${entityName} saved = repository.save(entity);
+		return saved;
 	}
 
     @GET
@@ -72,53 +87,54 @@ public class ${entityEndpointName} {
 
 	@GET
     @Produces("${contentType}")
-	public List<${entityName}> listAll() {
-		return repository.findAll();
-	}
-
-	@GET
-    @Produces("${contentType}")
 	public List<${entityName}> listAll(@QueryParam("start") int start,
 			@QueryParam("max") int max) {
 		return repository.findAll(start, max);
 	}
+
+	@GET
+	@Path("/count")
+	public Long count() {
+		return repository.count();
+	}
 	
 	@POST
+    @Path("/findBy")
     @Produces("${contentType}")
     @Consumes("${contentType}")
 	public List<${entityName}> findBy(${entitySearchName} searchInput) {
 		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
-		return repository.findBy(searchInput.getEntity(), attributes);
+		return repository.findBy(searchInput.getEntity(),
+				searchInput.getStart(), searchInput.getMax(), attributes);
 	}
 
-
 	@POST
-    @Produces("${contentType}")
+	@Path("/countBy")
     @Consumes("${contentType}")
-	public List<${entityName}> findBy(${entitySearchName} searchInput, @QueryParam("start") int start,
-			@QueryParam("max") int max) {
+	public Long countBy(${entitySearchName} searchInput) {
 		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
-		return repository.findBy(searchInput.getEntity(), start, max, attributes);
+		return repository.count(searchInput.getEntity(), attributes);
 	}
 
 	@POST
+    @Path("/findByLike")
     @Produces("${contentType}")
     @Consumes("${contentType}")
 	public List<${entityName}> findByLike(${entitySearchName} searchInput) {
 		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
-		return repository.findByLike(searchInput.getEntity(), attributes);
+		return repository.findByLike(searchInput.getEntity(),
+				searchInput.getStart(), searchInput.getMax(), attributes);
 	}
 
 
 	@POST
-    @Produces("${contentType}")
+	@Path("/countByLike")
     @Consumes("${contentType}")
-	public List<${entityName}> findByLike(${entitySearchName} searchInput, @QueryParam("start") int start,
-			@QueryParam("max") int max) {
-		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
-		return repository.findByLike(searchInput.getEntity(), start, max, attributes);
+	public Long countByLike(${entitySearchName} searchInput) {
+		SingularAttribute<Person, ?>[] attributes = readSeachAttributes(searchInput);
+		return repository.countLike(searchInput.getEntity(), attributes);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private SingularAttribute<${entityName}, ?>[] readSeachAttributes(
 			${entitySearchName} searchInput) {
