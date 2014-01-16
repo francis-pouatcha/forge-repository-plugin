@@ -1,0 +1,21 @@
+package org.adorsys.forge.plugins.rest;
+
+import javax.inject.Inject;
+
+public class ${entityName}Merger {
+
+	@Inject
+	private ${entityRepoName} repository;
+
+	public ${entityName} bindComposed(${entityName} entity) {
+		if(entity==null) return null;
+		if(entity.getId()==null) return entity;
+		return repository.save(entity);
+	}
+
+	public ${entityName} bindAggregated(${entityName} entity) {
+		if(entity==null)return null;
+		if(entity.getId()==null)return null;
+		return repository.findBy(entity.getId());
+	}
+}

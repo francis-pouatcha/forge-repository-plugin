@@ -11,8 +11,11 @@ import java.util.Set;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.persistence.Entity;
 
+import org.adorsys.forge.plugins.utils.EntityInfo;
 import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
+import org.adorsys.forge.plugins.utils.PluginUtils;
 import org.apache.deltaspike.data.api.Repository;
 import org.jboss.forge.parser.JavaParser;
 import org.jboss.forge.parser.java.Import;
@@ -32,17 +35,108 @@ public class JUnitTestGenerator {
 	FreemarkerTemplateProcessor processor;
 
 	@Inject
+	private PluginUtils pluginUtils;
+
+	@Inject
 	JavaSourceFacet java;
 
-	public JavaClass generateFrom(JavaSource<?> sourceOfClassToTest, final PipeOut out) {
-//		String repositoryAnnotation = "org.apache.deltaspike.data.api.Repository";
-		if(!(sourceOfClassToTest.hasAnnotation(Repository.class) || sourceOfClassToTest.hasAnnotation(Stateless.class))){
+	public JavaClass[] generateFrom(JavaSource<?> sourceOfClassToTest, final PipeOut out) {
+
+		if((sourceOfClassToTest.hasAnnotation(Repository.class) || sourceOfClassToTest.hasAnnotation(Stateless.class) )){
+		
+			Set<String> dependencyPackages = calculateDependencies(sourceOfClassToTest);
+	
+
+			Map<Object, Object> map = new HashMap<Object, Object>();
+			
+			map.put("packagesToImport", dependencyPackages);
+			map.put("ClassToTest", sourceOfClassToTest.getName());
+			map.put("classToTest", sourceOfClassToTest.getName().toLowerCase());
+			String output = processor.processTemplate(map,
+					"org/adorsys/forge/plugins/tst/JunitTest.jv");
+			JavaClass resource = JavaParser.parse(JavaClass.class, output);
+			resource.setPackage(sourceOfClassToTest.getPackage()+".test");
+			
+			return new JavaClass[]{resource};
+		} else if (sourceOfClassToTest.hasAnnotation(Entity.class)){
+			JavaClass entity = (JavaClass) sourceOfClassToTest;
+			
+			EntityInfo entityInfo = pluginUtils.inspectEntity(entity);
+
+			// find and process the endpoints.
+			JavaResource restEndPoint = pluginUtils.findEndPoint(entity);
+			Set<String> restDependencyPackages;
+			try {
+				restDependencyPackages = calculateDependencies(restEndPoint.getJavaSource());
+			} catch (FileNotFoundException e) {
+				throw new IllegalStateException(e);
+			}
+			entityInfo.addToEndpointDeploymentPackage(restDependencyPackages);
+			
+			Set<String> dependencyPackages = new HashSet<String>();
+			
+			List<JavaSource<?>> sourcesToProcess = new ArrayList<JavaSource<?>>();
+	
+			JavaResource mainJavaResource = getJavaResource(sourceOfClassToTest);
+			Resource<?> parent = mainJavaResource.getParent();
+			List<Resource<?>> listResources = parent.listResources(new ResourceFilter() {
+				@Override
+				public boolean accept(Resource<?> resource) {
+					return resource instanceof JavaResource;
+				}
+			});
+			dependencyPackages.add(sourceOfClassToTest.getPackage());
+			for (Resource<?> resource : listResources) {
+				JavaResource jr = (JavaResource) resource;
+				sourcesToProcess.add(getJavaSource(jr));
+			}
+	
+			processJavaSources(dependencyPackages, sourcesToProcess);
+
+			Map<Object, Object> map = new HashMap<Object, Object>();
+			
+			map.put("packagesToImport", dependencyPackages);
+			map.put("entityInfo", entityInfo);
+
+			String serviceOutput = processor.processTemplate(map,
+					"org/adorsys/forge/plugins/tst/EntityService.jv");
+			JavaClass serviceResource = JavaParser.parse(JavaClass.class, serviceOutput);
+			serviceResource.setPackage(sourceOfClassToTest.getPackage()+".test");
+			serviceResource.addImport(sourceOfClassToTest.getQualifiedName());
+			serviceResource.addImport(sourceOfClassToTest.getQualifiedName()+"SearchInput");
+			
+			String dodOutput = processor.processTemplate(map,
+					"org/adorsys/forge/plugins/tst/EntityDoD.jv");
+			JavaClass dodResource = JavaParser.parse(JavaClass.class, dodOutput);
+			dodResource.setPackage(sourceOfClassToTest.getPackage()+".test");
+			dodResource.addImport(sourceOfClassToTest.getQualifiedName());
+
+			String output = processor.processTemplate(map,
+					"org/adorsys/forge/plugins/tst/RestJunitTest.jv");
+			JavaClass resource = JavaParser.parse(JavaClass.class, output);
+			resource.setPackage(sourceOfClassToTest.getPackage()+".test");
+			List<String> referencedTypesFQN = entityInfo.getReferencedTypesFQN();
+			for (String referencedTypeFQN : referencedTypesFQN) {
+				resource.addImport(referencedTypeFQN);
+			}
+			resource.addImport(sourceOfClassToTest.getQualifiedName());
+			resource.addImport(sourceOfClassToTest.getQualifiedName()+"SearchInput");
+			List<String> simpleFieldTypeImport = entityInfo.getSimpleFieldTypeImport();
+			for (String fieldTypeImport : simpleFieldTypeImport) {
+				resource.addImport(fieldTypeImport);
+			}
+			
+			return new JavaClass[]{serviceResource,resource,dodResource};
+			
+		} else {
 			ShellMessages.info(out,
 					"Specified package " + sourceOfClassToTest.getQualifiedName()
-					+ " does not have the annotation "+Repository.class.getName()+". No test will be generated for this class.");
+					+ " does not have the annotation "+Repository.class.getName()+ " or the " + Stateless.class.getName()  + " or the " + Entity.class.getName()+" No test will be generated for this class.");
 			return null;
 		}
+	}
 
+	private Set<String> calculateDependencies(JavaSource<?> sourceOfClassToTest){
 		Set<String> dependencyPackages = new HashSet<String>();
 
 		List<JavaSource<?>> sourcesToProcess = new ArrayList<JavaSource<?>>();
@@ -62,19 +156,9 @@ public class JUnitTestGenerator {
 		}
 
 		processJavaSources(dependencyPackages, sourcesToProcess);
-
-		Map<Object, Object> map = new HashMap<Object, Object>();
-		
-		map.put("packagesToImport", dependencyPackages);
-		map.put("ClassToTest", sourceOfClassToTest.getName());
-		map.put("classToTest", sourceOfClassToTest.getName().toLowerCase());
-		String output = processor.processTemplate(map,
-				"org/adorsys/forge/plugins/tst/JunitTest.jv");
-		JavaClass resource = JavaParser.parse(JavaClass.class, output);
-		resource.setPackage(sourceOfClassToTest.getPackage()+".test");
-		return resource;
+		return dependencyPackages;
 	}
-
+	
 	private void processJavaSources(Set<String> dependencyPackages,
 			List<JavaSource<?>> sourcesToProcess) 
 	{

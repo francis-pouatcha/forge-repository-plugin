@@ -1,27 +1,16 @@
 package org.adorsys.forge.plugins.repo;
 
-import javax.enterprise.inject.Disposes;
+import javax.ejb.Stateless;
 import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
+import javax.persistence.PersistenceContext;
 
+@Stateless
 public class DataSourceProducer {
 
-    @PersistenceUnit(unitName="forge-default")
-    private EntityManagerFactory emf;
+	@PersistenceContext
+	private EntityManager entityManager;
 
-    @Produces
-    public EntityManager create()
-    {
-        return emf.createEntityManager();
-    }
-
-    public void close(@Disposes EntityManager em)
-    {
-        if (em.isOpen())
-        {
-            em.close();
-        }
-    }
+  	@Produces
+  	public EntityManager create(){return entityManager;}
 }

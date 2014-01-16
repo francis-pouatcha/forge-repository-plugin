@@ -1,0 +1,114 @@
+package $package;
+
+import java.util.List;
+
+import javax.inject.Singleton;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+
+@Singleton
+public class ${entityInfo.entity.getName()}Service {
+	private WebTarget target;
+	private String media = MediaType.APPLICATION_JSON;
+	private static final String FIND_BY="findBy";
+	private static final String FIND_BY_LIKE_PATH="findByLike";
+	
+	
+	public ${entityInfo.entity.getName()}Service(String serverAddress) {
+		Client client = ClientBuilder.newClient();
+		this.target = client.target(serverAddress + "rest/${entityInfo.entity.getName()?lower_case}s");
+	}
+
+	public ${entityInfo.entity.getName()} create(${entityInfo.entity.getName()} entity) {
+		Entity<${entityInfo.entity.getName()}> eCopy = Entity.entity(entity, media);
+		return target.request(media).post(eCopy, ${entityInfo.entity.getName()}.class);
+	}
+
+	// @DELETE
+	// @Path("/{id:[0-9][0-9]*}")
+	public ${entityInfo.entity.getName()} deleteById(Long id) {//@PathParam("id")
+		// TODO encode id
+		return target.path(""+id).request(media).delete(${entityInfo.entity.getName()}.class);
+	}
+
+	// @PUT
+	// @Path("/{id:[0-9][0-9]*}")
+	// @Consumes("application/xml")
+	public ${entityInfo.entity.getName()} update(${entityInfo.entity.getName()} entity) {
+		Entity<${entityInfo.entity.getName()}> person = Entity.entity(entity, media);
+		return target.path(""+entity.getId())
+				.request(media).put(person, ${entityInfo.entity.getName()}.class);
+	}
+
+	// @GET
+	// @Path("/{id:[0-9][0-9]*}")
+	// @Produces("application/xml")
+	public ${entityInfo.entity.getName()} findById(Long id) {// @PathParam("id") 
+		return target.path(""+id).request(media).get(${entityInfo.entity.getName()}.class);
+	}
+
+	// @GET
+	// @Produces("application/xml")
+	public List<${entityInfo.entity.getName()}> listAll() {
+		return target.request(media).get(new GenericType<List<${entityInfo.entity.getName()}>>() {});
+	}
+
+	// @GET
+	// @Produces("application/xml")
+	public List<${entityInfo.entity.getName()}> listAll(int start, int max) {
+		return target.queryParam("start", start).queryParam("max", max)
+				.request(media).get(new GenericType<List<${entityInfo.entity.getName()}>>() {});
+	}
+
+//	@GET
+//	@Path("/count")
+	public Long count() {
+		return target.path("count").request().get(Long.class);
+	}
+	
+	// @POST
+	// @Produces("application/xml")
+	// @Consumes("application/xml")
+	public List<${entityInfo.entity.getName()}> findBy(${entityInfo.entity.getName()}SearchInput searchInput) {
+		Entity<${entityInfo.entity.getName()}SearchInput> searchInputEntity = Entity.entity(
+				searchInput, media);
+		return target.path(FIND_BY).request(media).post(
+				searchInputEntity, new GenericType<List<${entityInfo.entity.getName()}>>() {});
+	}
+
+//	@POST
+//	@Path("/countBy")
+//	@Consumes("application/xml")
+	public Long countBy(${entityInfo.entity.getName()}SearchInput searchInput) {
+		Entity<${entityInfo.entity.getName()}SearchInput> searchInputEntity = Entity.entity(
+				searchInput, media);
+		return target.path("countBy").request()
+				.post(searchInputEntity, Long.class);
+	}
+
+	// @POST
+	// @Path("/findByLike"
+	// @Produces("application/xml")
+	// @Consumes("application/xml")
+	public List<${entityInfo.entity.getName()}> findByLike(${entityInfo.entity.getName()}SearchInput searchInput) {
+		Entity<${entityInfo.entity.getName()}SearchInput> searchInputEntity = Entity.entity(
+				searchInput, media);
+		return target.path(FIND_BY_LIKE_PATH).request(media).post(
+				searchInputEntity, new GenericType<List<${entityInfo.entity.getName()}>>() {
+				});
+	}
+
+	// @POST
+	// @Path("/countByLike"
+	// @Consumes("application/xml")
+	public Long countByLike(${entityInfo.entity.getName()}SearchInput searchInput) {
+		Entity<${entityInfo.entity.getName()}SearchInput> searchInputEntity = Entity.entity(
+				searchInput, media);
+		return target.path("countByLike").request()
+				.post(searchInputEntity, Long.class);
+	}
+}

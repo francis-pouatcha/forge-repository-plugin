@@ -79,11 +79,6 @@ public class Rest2Plugin implements Plugin {
 			final PipeOut out) 
 	{
 		if (!project.hasFacet(RepositoryFacet.class)) {
-//			try {
-//				shell.execute("repogen setup");
-//			} catch (Exception e) {
-//				throw new IllegalStateException();
-//			}
 			request.fire(new InstallFacets(RepositoryFacet.class));
 		}
 		

@@ -2,14 +2,21 @@ package org.adorsys.forge.plugins.utils;
 
 import static org.jboss.forge.spec.javaee.RestApplicationFacet.REST_APPLICATIONCLASS_PACKAGE;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Version;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.forge.env.Configuration;
 import org.jboss.forge.parser.java.Annotation;
 import org.jboss.forge.parser.java.Field;
@@ -300,5 +307,133 @@ public class PluginUtils {
     public static String firstLetterCaps(String text) {
         return String.valueOf(text.charAt(0)).toUpperCase().concat(text.substring(1, text.length()));
     }
+    
+    public EntityInfo inspectEntity(JavaClass entity){
+    	assert entity!=null : "entity can not be null";
+    	EntityInfo entityInfo = new EntityInfo();
+    	entityInfo.setEntity(entity);
+    	
+    	Annotation<JavaClass> entityAnnotation = entity.getAnnotation(Entity.class);
+    	assert entityAnnotation!=null : "Object does not have the @Entity annotation.";
+    	
+    	List<Field<JavaClass>> fields = entity.getFields();
+    	for (Field<JavaClass> field : fields) {
+    		if (field.hasAnnotation(Id.class)){ 
+    			processId(field, entityInfo);
+    			continue;
+    		}
+    		
+    		if(field.hasAnnotation(Version.class)) continue;
+    	
+    		Annotation<JavaClass> manyToOneAnnotation = field.getAnnotation(ManyToOne.class);
+    		if(manyToOneAnnotation!=null){
+    			processManyToOne(manyToOneAnnotation, field, entityInfo);
+    			continue;
+    		}
+    		
+    		Annotation<JavaClass> oneToOneAnnotation = field.getAnnotation(OneToOne.class);
+    		if(oneToOneAnnotation!=null){
+    			processOneToOne(oneToOneAnnotation, field, entityInfo);
+    			continue;
+    		}
+    		
+    		if(field.getType().equals(String.class.getSimpleName())){
+    			entityInfo.getSimpleStringFields().add(field);
+        		entityInfo.getAllSimpleFields().add(field);
+    		} else if(field.getType().equals(Long.class.getSimpleName())){
+    			entityInfo.getSimpleLongFields().add(field);
+        		entityInfo.getAllSimpleFields().add(field);
+    		} else if(field.getType().equals(Integer.class.getSimpleName())){
+    			entityInfo.getSimpleIntegerFields().add(field);
+        		entityInfo.getAllSimpleFields().add(field);
+    		} else if(field.getType().equals(Double.class.getSimpleName())){
+    			entityInfo.getSimpleDoubleFields().add(field);
+        		entityInfo.getAllSimpleFields().add(field);
+    		} else if(field.getType().equals(Float.class.getSimpleName())){
+    			entityInfo.getSimpleFloatFields().add(field);
+        		entityInfo.getAllSimpleFields().add(field);
+    		} else if(field.getType().equals(Date.class.getSimpleName())){
+    			entityInfo.getSimpleDateFields().add(field);
+        		entityInfo.getAllSimpleFields().add(field);
+    		}
+		}
+    	
+		return entityInfo;
+    }
+
+	private void processOneToOne(Annotation<JavaClass> oneToOneAnnotation,
+			Field<JavaClass> field, EntityInfo entityInfo) {
+		String cascade = oneToOneAnnotation.getStringValue("cascade");
+		if(cascade!=null){
+			entityInfo.getComposed().add(field);
+			if(!entityInfo.getComposedFieldsByType().containsKey(field.getType()))
+				entityInfo.getComposedFieldsByType().put(field.getType(), new ArrayList<String>());
+			entityInfo.getComposedFieldsByType().get(field.getType()).add(field.getName());
+			if(!entityInfo.getComposedTypes().contains(field.getType())){
+				entityInfo.getComposedTypes().add(field.getType());
+				entityInfo.getComposedTypesFQN().add(field.getQualifiedType());
+			}
+		} else {
+			entityInfo.getAggregated().add(field);
+			if(!entityInfo.getAggregatedFieldsByType().containsKey(field.getType()))
+				entityInfo.getAggregatedFieldsByType().put(field.getType(), new ArrayList<String>());
+			entityInfo.getAggregatedFieldsByType().get(field.getType()).add(field.getName());
+			if(!entityInfo.getAggregatedTypes().contains(field.getType())){
+				entityInfo.getAggregatedTypes().add(field.getType());
+				entityInfo.getAggregatedTypesFQN().add(field.getQualifiedType());
+			}
+		}
+	}
+
+	private void processManyToOne(Annotation<JavaClass> manyToOneAnnotation,
+			Field<JavaClass> field, EntityInfo entityInfo) {
+		String cascade = manyToOneAnnotation.getStringValue("cascade");
+		if(cascade!=null){
+			entityInfo.getComposed().add(field);
+			if(!entityInfo.getComposedFieldsByType().containsKey(field.getType()))
+				entityInfo.getComposedFieldsByType().put(field.getType(), new ArrayList<String>());
+			entityInfo.getComposedFieldsByType().get(field.getType()).add(field.getName());
+			if(!entityInfo.getComposedTypes().contains(field.getType())){
+				entityInfo.getComposedTypes().add(field.getType());
+				entityInfo.getComposedTypesFQN().add(field.getQualifiedType());
+			}
+		} else {
+			entityInfo.getAggregated().add(field);
+			if(!entityInfo.getAggregatedFieldsByType().containsKey(field.getType()))
+				entityInfo.getAggregatedFieldsByType().put(field.getType(), new ArrayList<String>());
+			entityInfo.getAggregatedFieldsByType().get(field.getType()).add(field.getName());
+			if(!entityInfo.getAggregatedTypes().contains(field.getType())){
+				entityInfo.getAggregatedTypes().add(field.getType());
+				entityInfo.getAggregatedTypesFQN().add(field.getQualifiedType());
+			}
+		}
+	}
+
+	private void processId(Field<JavaClass> field, EntityInfo entityInfo) {
+		String name = field.getName();
+		entityInfo.setIdFieldName(name);
+		entityInfo.setIdGetterName("get"+firstLetterCaps(name));
+		Annotation<JavaClass> genValuennotation = field.getAnnotation(GeneratedValue.class);
+		if(genValuennotation!=null){
+			String generationStrategy = genValuennotation.getStringValue("strategy");
+			entityInfo.setIdGenerationType(generationStrategy);
+		}
+	}
+
+	public String getEntityEndpointName(JavaClass entity) {
+		return getEntityTable(entity) + "Endpoint";
+	}
+
+	public JavaResource findEndPoint(JavaClass entity) {
+		String entityEndpointName = getEntityEndpointName(entity);
+		String restPackageName = getRestPackageName();
+//		String restEndpointFQN = restPackageName + "."+entityEndpointName;
+		String restFilePath = StringUtils.replace(restPackageName, ".", File.separator)+ File.separator + entityEndpointName +".java";
+		try {
+			return java.getJavaResource(restFilePath);
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException("Rest endpoint not found for entity "+ entity.getQualifiedName());
+		}
+	}
 	
 }

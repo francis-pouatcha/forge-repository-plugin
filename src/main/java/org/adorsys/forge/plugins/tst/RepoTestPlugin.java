@@ -59,9 +59,11 @@ public class RepoTestPlugin implements Plugin {
 
 	@SetupCommand
 	public void installContainer() throws Exception {
-		shell.execute("arquillian setup --containerType REMOTE --containerName JBOSS_AS_REMOTE_7.X");
+		if(!project.hasFacet(RepoTestFacet.class)){
+			shell.execute("arquillian setup --containerType REMOTE --containerName JBOSS_AS_REMOTE_7.X");
 
-		request.fire(new InstallFacets(RepoTestFacet.class));
+			request.fire(new InstallFacets(RepoTestFacet.class));
+		}
 	}
 
 	@Command(value = "create-test", help = "Create a new test class with a default @Deployment method")
@@ -141,48 +143,49 @@ public class RepoTestPlugin implements Plugin {
 					+ classUnderTest.getFullyQualifiedName() + "]");
 		}
 
-		JavaClass resource = junitTestGenerator.generateFrom(javaSource, out);
-		if (resource == null)
+		JavaClass[] resources = junitTestGenerator.generateFrom(javaSource, out);
+		if (resources == null || resources.length==0)
 			return;
 
 		final JavaSourceFacet java = project.getFacet(JavaSourceFacet.class);
 
-		JavaResource testJavaResource;
-		try {
-			testJavaResource = java.getTestJavaResource(resource);
-		} catch (FileNotFoundException e1) {
-			ShellMessages.error(out,
-					"Can not read java source from generated class. ["
-							+ resource.getQualifiedName() + "]");
-			return;
-		}
-		try {
-			if (!testJavaResource.exists()) {
-
-				JavaResource savedTestJavaSource = java
-						.saveTestJavaSource(resource);
-				generatedEvent.fire(savedTestJavaSource);
-				ShellMessages.success(out, "Generated repository for ["
-						+ javaSource.getQualifiedName() + "]");
-			} else if (override){
-				JavaResource savedTestJavaSource = java
-						.saveTestJavaSource(resource);
-				generatedEvent.fire(savedTestJavaSource);
-				ShellMessages.success(out, "Generated repository for ["
-						+ javaSource.getQualifiedName() + "]. Overriding existing file.");
-			} else {
-				ShellMessages.info(out,
-						"Generated class exists and will not be replaces. ["
+		for (JavaClass resource : resources) {
+			JavaResource testJavaResource;
+			try {
+				testJavaResource = java.getTestJavaResource(resource);
+			} catch (FileNotFoundException e1) {
+				ShellMessages.error(out,
+						"Can not read java source from generated class. ["
 								+ resource.getQualifiedName() + "]");
+				return;
 			}
-		} catch (FileNotFoundException e) {
-			ShellMessages.error(
-					out,
-					"Generated class is not in the src test path. ["
-							+ resource.getQualifiedName() + "]");
-			return;
+			try {
+				if (!testJavaResource.exists()) {
+					
+					JavaResource savedTestJavaSource = java
+							.saveTestJavaSource(resource);
+					generatedEvent.fire(savedTestJavaSource);
+					ShellMessages.success(out, "Generated class for ["
+							+ javaSource.getQualifiedName() + "]");
+				} else if (override){
+					JavaResource savedTestJavaSource = java
+							.saveTestJavaSource(resource);
+					generatedEvent.fire(savedTestJavaSource);
+					ShellMessages.success(out, "Generated class for ["
+							+ javaSource.getQualifiedName() + "]. Overriding existing file.");
+				} else {
+					ShellMessages.info(out,
+							"Generated class exists and will not be replaces. ["
+									+ resource.getQualifiedName() + "]");
+				}
+			} catch (FileNotFoundException e) {
+				ShellMessages.error(
+						out,
+						"Generated class is not in the src test path. ["
+								+ resource.getQualifiedName() + "]");
+				return;
+			}
+			
 		}
-
 	}
-
 }

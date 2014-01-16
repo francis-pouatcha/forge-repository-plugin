@@ -29,18 +29,18 @@ public class ${entityEndpointName} {
 
 	@Inject
 	private ${entityRepoName} repository;
+	
+	<#list entityInfo.getReferencedTypes() as referencedType>
+	@Inject
+   	private ${referencedType}Merger ${referencedType?uncap_first}Merger;
+
+	</#list>
 
 	@POST
-    @Consumes("${contentType}")
-	@Produces("application/xml")
+    @Consumes({"application/json","application/xml"})
+	@Produces({"application/json","application/xml"})
 	public ${entityName} create(${entityName} entity) {
-	    /*
-	     * This avoids setting ids from outside. If not create and save will be very
-	     * similar, and an entity could be mistakenly overriden by just 
-	     * changing it's id. 
-	     */
-	    entity.setId(null);
-		repository.save(entity);
+	  	repository.save(attach(entity));
 		return entity;
 	}
 
@@ -51,27 +51,22 @@ public class ${entityEndpointName} {
 		if (entity == null) {
 			return Response.status(Status.NOT_FOUND).build();
 		}
-		/*
-		 * TODO test if entity listener will be invoked upon deleting through
-		 * direct jpql queries.
-		 * repository.remove(entity);
-		 */
-      	repository.removeJPQL(entity.getId());
+		repository.remove(entity);
 		return Response.ok(entity).build();
 	}
 
 	@PUT
 	@Path("/{id:[0-9][0-9]*}")
-	@Produces("application/xml")
-    @Consumes("${contentType}")
+	@Produces({"application/json","application/xml"})
+    @Consumes({"application/json","application/xml"})
 	public ${entityName} update(${entityName} entity) {
-		${entityName} saved = repository.save(entity);
+		${entityName} saved = repository.save(attach(entity));
 		return saved;
 	}
 
     @GET
     @Path("/{id:[0-9][0-9]*}")
-    @Produces("${contentType}")
+	@Produces({"application/json","application/xml"})
     public Response findById(@PathParam("id") ${idType} id){
 		${entityName} entity = repository.findBy(id);
 
@@ -82,7 +77,7 @@ public class ${entityEndpointName} {
 	}
 
 	@GET
-    @Produces("${contentType}")
+	@Produces({"application/json","application/xml"})
 	public List<${entityName}> listAll(@QueryParam("start") int start,
 			@QueryParam("max") int max) {
 		return repository.findAll(start, max);
@@ -96,8 +91,8 @@ public class ${entityEndpointName} {
 	
 	@POST
     @Path("/findBy")
-    @Produces("${contentType}")
-    @Consumes("${contentType}")
+	@Produces({"application/json","application/xml"})
+    @Consumes({"application/json","application/xml"})
 	public List<${entityName}> findBy(${entitySearchName} searchInput) {
 		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
 		return repository.findBy(searchInput.getEntity(),
@@ -106,7 +101,7 @@ public class ${entityEndpointName} {
 
 	@POST
 	@Path("/countBy")
-    @Consumes("${contentType}")
+    @Consumes({"application/json","application/xml"})
 	public Long countBy(${entitySearchName} searchInput) {
 		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
 		return repository.count(searchInput.getEntity(), attributes);
@@ -114,8 +109,8 @@ public class ${entityEndpointName} {
 
 	@POST
     @Path("/findByLike")
-    @Produces("${contentType}")
-    @Consumes("${contentType}")
+	@Produces({"application/json","application/xml"})
+    @Consumes({"application/json","application/xml"})
 	public List<${entityName}> findByLike(${entitySearchName} searchInput) {
 		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
 		return repository.findByLike(searchInput.getEntity(),
@@ -125,7 +120,7 @@ public class ${entityEndpointName} {
 
 	@POST
 	@Path("/countByLike")
-    @Consumes("${contentType}")
+    @Consumes({"application/json","application/xml"})
 	public Long countByLike(${entitySearchName} searchInput) {
 		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
 		return repository.countLike(searchInput.getEntity(), attributes);
@@ -152,4 +147,20 @@ public class ${entityEndpointName} {
 		}
 		return result.toArray(new SingularAttribute[result.size()]);
 	}
+	
+   private ${entityName} attach(${entityName} entity){
+	   
+	<#list entityInfo.getComposed() as field>
+	   // composed
+	   entity.set${field.getName()?cap_first}(${field.getType()?uncap_first}Merger.bindComposed(entity.get${field.getName()?cap_first}()));
+
+	</#list>
+	<#list entityInfo.getAggregated() as field>
+	   // aggregated
+	   entity.set${field.getName()?cap_first}(${field.getType()?uncap_first}Merger.bindAggregated(entity.get${field.getName()?cap_first}()));
+
+	</#list>
+	   
+	   return entity;
+   }
 }
