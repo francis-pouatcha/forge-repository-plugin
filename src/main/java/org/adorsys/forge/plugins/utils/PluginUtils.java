@@ -352,6 +352,9 @@ public class PluginUtils {
     		} else if(field.getType().equals(Float.class.getSimpleName())){
     			entityInfo.getSimpleFloatFields().add(field);
         		entityInfo.getAllSimpleFields().add(field);
+    		} else if(field.getType().equals(Boolean.class.getSimpleName())){
+    			entityInfo.getSimpleBooleanFields().add(field);
+        		entityInfo.getAllSimpleFields().add(field);
     		} else if(field.getType().equals(Date.class.getSimpleName())){
     			entityInfo.getSimpleDateFields().add(field);
         		entityInfo.getAllSimpleFields().add(field);
