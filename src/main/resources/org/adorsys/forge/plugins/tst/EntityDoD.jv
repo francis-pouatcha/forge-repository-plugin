@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import org.apache.commons.lang3.RandomStringUtils;
+<#list packagesToImport as packageToImport>
+import ${packageToImport}.*;
+</#list>
 
 public class ${entityInfo.entity.getName()}DoD {
 
@@ -101,7 +104,7 @@ public class ${entityInfo.entity.getName()}DoD {
 	   </#list>
 	   <#list entityInfo.simpleDateFields as field>
 	   <#if entityInfo.containsField(field)>
-	   entity.set${field.getName()?cap_first}(random.nextDate());
+	   entity.set${field.getName()?cap_first}(new Date());
 	   result.add("${field.getName()}");
 	   </#if>
 
