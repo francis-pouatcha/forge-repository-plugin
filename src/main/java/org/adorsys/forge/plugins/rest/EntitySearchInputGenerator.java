@@ -24,13 +24,14 @@ public class EntitySearchInputGenerator {
 
 	public JavaClass generateFrom(JavaClass entity,
 			RepoGeneratedResources repoGeneratedResources, 
+			String fileName,
 			boolean override,
 			final PipeOut out) throws FileNotFoundException 
 	{
 	
 		Map<Object, Object> map = new HashMap<Object, Object>();
 		map.put("entityName", entity.getName());
-		String output = processor.processTemplate(map,"org/adorsys/forge/plugins/jpa/SearchInput.jv");
+		String output = processor.processTemplate(map,fileName);
 		JavaClass entitySearch = JavaParser.parse(JavaClass.class, output);
 		entitySearch.setPackage(entity.getPackage());
 

@@ -45,7 +45,9 @@ public class EntityBasedResourceGenerator {
 		}
 
 		JavaClass entitySearch = searchInputGenerator.generateFrom(entity,
-				repoGeneratedResources, override, out);
+				repoGeneratedResources, "org/adorsys/forge/plugins/jpa/SearchInput.jv", override, out);
+		JavaClass entitySearchResult = searchInputGenerator.generateFrom(entity,
+				repoGeneratedResources, "org/adorsys/forge/plugins/jpa/SearchResult.jv", override, out);
 
 		EntityInfo entityInfo = pluginUtils.inspectEntity(entity);
 		String entityTable = pluginUtils.getEntityTable(entity);
@@ -81,6 +83,7 @@ public class EntityBasedResourceGenerator {
 		 */
 		restResource.addImport(entity.getQualifiedName()+"_");
 		restResource.addImport(entitySearch.getQualifiedName());
+		restResource.addImport(entitySearchResult.getQualifiedName());
 		restResource.addImport(repoResource.getQualifiedName());
 		restResource.setPackage(pluginUtils.getRestPackageName());
 		

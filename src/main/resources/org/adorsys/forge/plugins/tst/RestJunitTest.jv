@@ -73,14 +73,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+      ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+      List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -113,12 +115,14 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * End Create object
 	   */
 
-	   entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+	   entityList = searchResult.getResultList();
 	   Assert.assertEquals(1, entityList.size());
 
 		// All referenced field aggregated and composed are there.
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   Assert.assertEquals(${entityInfo.getCountForReferencedFieldsOfType(referencedType)}, ${referencedType?uncap_first}List.size());
 	   
 	   </#list>
@@ -126,23 +130,27 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   // delete entity.
 	   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(created.getId());
 
-	   entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+	   entityList = searchResult.getResultList();
 	   Assert.assertEquals(0, entityList.size());
 
 		// Composed fields are supposed to be deleted. Only aggregated fields left.
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   Assert.assertEquals(${entityInfo.getCountForAggregatedFieldsOfType(referencedType)}, ${referencedType?uncap_first}List.size());
 	   
 	   </#list>
 	
 	   // delete aggregated fields	   
 	   <#list entityInfo.aggregated as aggregatedField>
-	   ${aggregatedField.getType()?uncap_first}List = ${aggregatedField.getType()?uncap_first}Service.listAll();
+	   ${aggregatedField.getType()?uncap_first}SearchResult = ${aggregatedField.getType()?uncap_first}Service.listAll();
+	   ${aggregatedField.getType()?uncap_first}List = ${aggregatedField.getType()?uncap_first}SearchResult.getResultList(); 
 	   for (${aggregatedField.getType()} f : ${aggregatedField.getType()?uncap_first}List) {
 		   ${aggregatedField.getType()?uncap_first}Service.deleteById(f.getId());
 	   }
-	   ${aggregatedField.getType()?uncap_first}List = ${aggregatedField.getType()?uncap_first}Service.listAll();
+	   ${aggregatedField.getType()?uncap_first}SearchResult = ${aggregatedField.getType()?uncap_first}Service.listAll();
+	   ${aggregatedField.getType()?uncap_first}List = ${aggregatedField.getType()?uncap_first}SearchResult.getResultList();
 	   Assert.assertEquals(0, ${aggregatedField.getType()?uncap_first}List.size());
 	   
 	   </#list>	   
@@ -156,14 +164,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -212,14 +222,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -265,14 +277,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -333,14 +347,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -376,7 +392,8 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * End Create object
 	   */
 	   
-	   entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+	   entityList = searchResult.getResultList();
 	   Assert.assertEquals(30, entityList.size());
    }
 
@@ -388,14 +405,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -431,13 +450,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * End Create object
 	   */
 	   
-	   entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll(1,5);
+	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll(1,5);
+       entityList = searchResult.getResultList();
 	   Assert.assertEquals(5, entityList.size());
 
-	   entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll(6,10);
+	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll(6,10);
+       entityList = searchResult.getResultList();
 	   Assert.assertEquals(10, entityList.size());
 
-	   entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll(12,40);
+	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll(12,40);
+       entityList = searchResult.getResultList();
 	   Assert.assertEquals(18, entityList.size());
    }
 
@@ -449,14 +471,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -504,14 +528,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -570,7 +596,8 @@ public class ${entityInfo.entity.getName()}ServiceTest
        ${entityInfo.entity.getName()}SearchInput searchInput = new ${entityInfo.entity.getName()}SearchInput();
        searchInput.setEntity(searchEntity);
        searchInput.getFieldNames().add(searchFieldName);
-	   entityList = ${entityInfo.entity.getName()?uncap_first}Service.findBy(searchInput);
+	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.findBy(searchInput);
+      entityList = searchResult.getResultList();
 		Assert.assertEquals(7, entityList.size());
    }
 
@@ -582,14 +609,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -661,14 +690,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }
@@ -727,7 +758,8 @@ public class ${entityInfo.entity.getName()}ServiceTest
        ${entityInfo.entity.getName()}SearchInput searchInput = new ${entityInfo.entity.getName()}SearchInput();
        searchInput.setEntity(searchEntity);
        searchInput.getFieldNames().add(searchFieldName);
-	   entityList = ${entityInfo.entity.getName()?uncap_first}Service.findByLike(searchInput);
+	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.findByLike(searchInput);
+      	entityList = searchResult.getResultList();
 		Assert.assertEquals(7, entityList.size());
    }
 
@@ -739,14 +771,16 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start cleanup
 	   */   
 	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
-	   List<${entityInfo.entity.getName()}> entityList = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+  	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
+       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
 	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
 		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
 	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
-	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}Service.listAll();
+	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
+	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
 		   ${referencedType?uncap_first}Service.deleteById(f.getId());
 	   }

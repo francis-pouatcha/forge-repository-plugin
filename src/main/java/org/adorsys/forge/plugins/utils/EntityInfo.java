@@ -5,9 +5,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jboss.forge.parser.java.Field;
@@ -33,6 +35,8 @@ public class EntityInfo {
 	private final List<Field<JavaClass>> simpleBooleanFields = new ArrayList<Field<JavaClass>>();
 
 	private final List<Field<JavaClass>> randomSimpleFields = new ArrayList<Field<JavaClass>>();
+	
+	private Set<String> packageImport = new HashSet<String>();
 	
 	/*
 	 * Entities listed in this class are cascaded from the 
@@ -287,6 +291,10 @@ public class EntityInfo {
 			if(!endPointDeployementPackages.contains(endpointPackage))
 				endPointDeployementPackages.add(endpointPackage);
 		}
+	}
+
+	public Set<String> getPackageImport() {
+		return packageImport;
 	}
 	
 }

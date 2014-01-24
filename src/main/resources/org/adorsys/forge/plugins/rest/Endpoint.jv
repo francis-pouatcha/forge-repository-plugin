@@ -78,9 +78,13 @@ public class ${entityEndpointName} {
 
 	@GET
 	@Produces({"application/json","application/xml"})
-	public List<${entityName}> listAll(@QueryParam("start") int start,
+	public ${entityName}SearchResult listAll(@QueryParam("start") int start,
 			@QueryParam("max") int max) {
-		return repository.findAll(start, max);
+      List<${entityName}> resultList = repository.findAll(start, max);
+      ${entityName}SearchInput searchInput = new ${entityName}SearchInput();
+      searchInput.setStart(start);
+      searchInput.setMax(max);
+      return new ${entityName}SearchResult((long) resultList.size(), resultList, searchInput);
 	}
 
 	@GET
@@ -93,11 +97,14 @@ public class ${entityEndpointName} {
     @Path("/findBy")
 	@Produces({"application/json","application/xml"})
     @Consumes({"application/json","application/xml"})
-	public List<${entityName}> findBy(${entitySearchName} searchInput) {
-		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
-		return repository.findBy(searchInput.getEntity(),
-				searchInput.getStart(), searchInput.getMax(), attributes);
-	}
+   public ${entityName}SearchResult findBy(${entityName}SearchInput searchInput)
+   {
+      SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
+      Long count = repository.count(searchInput.getEntity(), attributes);
+      List<${entityName}> resultList = repository.findBy(searchInput.getEntity(),
+            searchInput.getStart(), searchInput.getMax(), attributes);
+      return new ${entityName}SearchResult(count, resultList, searchInput);
+   }
 
 	@POST
 	@Path("/countBy")
@@ -111,11 +118,14 @@ public class ${entityEndpointName} {
     @Path("/findByLike")
 	@Produces({"application/json","application/xml"})
     @Consumes({"application/json","application/xml"})
-	public List<${entityName}> findByLike(${entitySearchName} searchInput) {
-		SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
-		return repository.findByLike(searchInput.getEntity(),
-				searchInput.getStart(), searchInput.getMax(), attributes);
-	}
+   public ${entityName}SearchResult findByLike(${entityName}SearchInput searchInput)
+   {
+      SingularAttribute<${entityName}, ?>[] attributes = readSeachAttributes(searchInput);
+      Long countLike = repository.countLike(searchInput.getEntity(), attributes);
+      List<${entityName}> resultList = repository.findByLike(searchInput.getEntity(),
+            searchInput.getStart(), searchInput.getMax(), attributes);
+      return new ${entityName}SearchResult(countLike, resultList, searchInput);
+   }
 
 
 	@POST

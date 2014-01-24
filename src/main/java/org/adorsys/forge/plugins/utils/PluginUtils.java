@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.persistence.Entity;
@@ -357,7 +358,8 @@ public class PluginUtils {
         		entityInfo.getAllSimpleFields().add(field);
     		} else if(field.getType().equals(Date.class.getSimpleName())){
     			entityInfo.getSimpleDateFields().add(field);
-        		entityInfo.getAllSimpleFields().add(field);
+    			entityInfo.getPackageImport().add(Date.class.getName());
+    			entityInfo.getAllSimpleFields().add(field);
     		}
 		}
     	

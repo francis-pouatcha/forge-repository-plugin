@@ -104,11 +104,16 @@ public class JUnitTestGenerator {
 			serviceResource.setPackage(sourceOfClassToTest.getPackage()+".test");
 			serviceResource.addImport(sourceOfClassToTest.getQualifiedName());
 			serviceResource.addImport(sourceOfClassToTest.getQualifiedName()+"SearchInput");
+			serviceResource.addImport(sourceOfClassToTest.getQualifiedName()+"SearchResult");
 			
 			String dodOutput = processor.processTemplate(map,
 					"org/adorsys/forge/plugins/tst/EntityDoD.jv");
 			JavaClass dodResource = JavaParser.parse(JavaClass.class, dodOutput);
 			dodResource.setPackage(sourceOfClassToTest.getPackage()+".test");
+			Set<String> packageImports = entityInfo.getPackageImport();
+			for (String packageImport : packageImports) {
+				dodResource.addImport(packageImport);
+			}
 			dodResource.addImport(sourceOfClassToTest.getQualifiedName());
 
 			String output = processor.processTemplate(map,
@@ -118,9 +123,11 @@ public class JUnitTestGenerator {
 			List<String> referencedTypesFQN = entityInfo.getReferencedTypesFQN();
 			for (String referencedTypeFQN : referencedTypesFQN) {
 				resource.addImport(referencedTypeFQN);
+				resource.addImport(referencedTypeFQN+"SearchResult");
 			}
 			resource.addImport(sourceOfClassToTest.getQualifiedName());
 			resource.addImport(sourceOfClassToTest.getQualifiedName()+"SearchInput");
+			resource.addImport(sourceOfClassToTest.getQualifiedName()+"SearchResult");
 			List<String> simpleFieldTypeImport = entityInfo.getSimpleFieldTypeImport();
 			for (String fieldTypeImport : simpleFieldTypeImport) {
 				resource.addImport(fieldTypeImport);

@@ -53,15 +53,15 @@ public class ${entityInfo.entity.getName()}Service {
 
 	// @GET
 	// @Produces("application/xml")
-	public List<${entityInfo.entity.getName()}> listAll() {
-		return target.request(media).get(new GenericType<List<${entityInfo.entity.getName()}>>() {});
+	public ${entityInfo.entity.getName()}SearchResult listAll() {
+		return target.request(media).get(${entityInfo.entity.getName()}SearchResult.class);
 	}
 
 	// @GET
 	// @Produces("application/xml")
-	public List<${entityInfo.entity.getName()}> listAll(int start, int max) {
+	public ${entityInfo.entity.getName()}SearchResult listAll(int start, int max) {
 		return target.queryParam("start", start).queryParam("max", max)
-				.request(media).get(new GenericType<List<${entityInfo.entity.getName()}>>() {});
+				.request(media).get(${entityInfo.entity.getName()}SearchResult.class);
 	}
 
 //	@GET
@@ -73,11 +73,11 @@ public class ${entityInfo.entity.getName()}Service {
 	// @POST
 	// @Produces("application/xml")
 	// @Consumes("application/xml")
-	public List<${entityInfo.entity.getName()}> findBy(${entityInfo.entity.getName()}SearchInput searchInput) {
+	public ${entityInfo.entity.getName()}SearchResult findBy(${entityInfo.entity.getName()}SearchInput searchInput) {
 		Entity<${entityInfo.entity.getName()}SearchInput> searchInputEntity = Entity.entity(
 				searchInput, media);
 		return target.path(FIND_BY).request(media).post(
-				searchInputEntity, new GenericType<List<${entityInfo.entity.getName()}>>() {});
+				searchInputEntity, ${entityInfo.entity.getName()}SearchResult.class);
 	}
 
 //	@POST
@@ -94,12 +94,11 @@ public class ${entityInfo.entity.getName()}Service {
 	// @Path("/findByLike"
 	// @Produces("application/xml")
 	// @Consumes("application/xml")
-	public List<${entityInfo.entity.getName()}> findByLike(${entityInfo.entity.getName()}SearchInput searchInput) {
+	public ${entityInfo.entity.getName()}SearchResult findByLike(${entityInfo.entity.getName()}SearchInput searchInput) {
 		Entity<${entityInfo.entity.getName()}SearchInput> searchInputEntity = Entity.entity(
 				searchInput, media);
 		return target.path(FIND_BY_LIKE_PATH).request(media).post(
-				searchInputEntity, new GenericType<List<${entityInfo.entity.getName()}>>() {
-				});
+				searchInputEntity, ${entityInfo.entity.getName()}SearchResult.class);
 	}
 
 	// @POST
