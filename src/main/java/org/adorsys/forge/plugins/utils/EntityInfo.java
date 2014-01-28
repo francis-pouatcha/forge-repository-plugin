@@ -1,5 +1,6 @@
 package org.adorsys.forge.plugins.utils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,7 +13,6 @@ import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.jboss.forge.parser.java.Field;
 import org.jboss.forge.parser.java.JavaClass;
 
 public class EntityInfo {
@@ -24,19 +24,20 @@ public class EntityInfo {
 	private String idGetterName;
 	
 	private JavaClass entity;
-
-	private final List<Field<JavaClass>> allSimpleFields = new ArrayList<Field<JavaClass>>();
-	private final List<Field<JavaClass>> simpleStringFields = new ArrayList<Field<JavaClass>>();
-	private final List<Field<JavaClass>> simpleLongFields = new ArrayList<Field<JavaClass>>();
-	private final List<Field<JavaClass>> simpleIntegerFields = new ArrayList<Field<JavaClass>>();
-	private final List<Field<JavaClass>> simpleDateFields = new ArrayList<Field<JavaClass>>();
-	private final List<Field<JavaClass>> simpleDoubleFields = new ArrayList<Field<JavaClass>>();
-	private final List<Field<JavaClass>> simpleFloatFields = new ArrayList<Field<JavaClass>>();
-	private final List<Field<JavaClass>> simpleBooleanFields = new ArrayList<Field<JavaClass>>();
-
-	private final List<Field<JavaClass>> randomSimpleFields = new ArrayList<Field<JavaClass>>();
 	
-	private Set<String> packageImport = new HashSet<String>();
+	private final List<FieldInfo> allSimpleFields = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> simpleStringFields = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> simpleLongFields = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> simpleIntegerFields = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> simpleDateFields = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> simpleDoubleFields = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> simpleFloatFields = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> simpleBooleanFields = new ArrayList<FieldInfo>();
+
+	private final List<FieldInfo> randomSimpleFields = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> simpleBigDecimalFields = new ArrayList<FieldInfo>();
+	
+	private final Set<String> packageImport = new HashSet<String>();
 	
 	/*
 	 * Entities listed in this class are cascaded from the 
@@ -48,7 +49,9 @@ public class EntityInfo {
 	 * current entity.
 	 * 
 	 */
-	private final List<Field<JavaClass>> composed = new ArrayList<Field<JavaClass>>();
+	private final List<FieldInfo> composed = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> composedCollections = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> testComposed = new ArrayList<FieldInfo>();
 	
 	/*
 	 * Referenced entities are not cascaded. They are generally shared
@@ -57,13 +60,22 @@ public class EntityInfo {
 	 * reload the referenced entity if i has an id, if not set the
 	 * reference to null.
 	 */
-	private final List<Field<JavaClass>> aggregated = new ArrayList<Field<JavaClass>>();
+	private final List<FieldInfo> aggregated = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> aggregatedCollections = new ArrayList<FieldInfo>();
+	private final List<FieldInfo> testAggregated = new ArrayList<FieldInfo>();
 
-	private final List<String> composedTypes = new ArrayList<String>();
-	private final List<String> composedTypesFQN = new ArrayList<String>();
+	private final Set<String> composedTypes = new HashSet<String>();
+	private final Set<String> composedCollectionTypes = new HashSet<String>();
+	private final Set<String> composedTypesFQN = new HashSet<String>();
+	private final Set<String> composedCollectionTypesFQN = new HashSet<String>();
 
-	private final List<String> aggregatedTypes = new ArrayList<String>();
-	private final List<String> aggregatedTypesFQN = new ArrayList<String>();
+	private final Set<String> aggregatedTypes = new HashSet<String>();
+	private final Set<String> aggregatedCollectionTypes = new HashSet<String>();
+	private final Set<String> aggregatedTypesFQN = new HashSet<String>();
+	private final Set<String> aggregatedCollectionTypesFQN = new HashSet<String>();
+
+	private final Random random = new Random();
+    private final List<FieldInfo> fieldInfos = new ArrayList<FieldInfo>();
 
 	public String getIdFieldName() {
 		return idFieldName;
@@ -89,48 +101,36 @@ public class EntityInfo {
 		this.idGetterName = idGetterName;
 	}
 
-	public List<Field<JavaClass>> getComposed() {
+	public List<FieldInfo> getComposed() {
 		return composed;
 	}
 
-	public List<Field<JavaClass>> getAggregated() {
+	public List<FieldInfo> getAggregated() {
 		return aggregated;
 	}
 
-	public List<String> getComposedTypes() {
-		return composedTypes;
+	public List<FieldInfo> getComposedCollections() {
+		return composedCollections;
 	}
 
-	public List<String> getComposedTypesFQN() {
-		return composedTypesFQN;
+	public List<FieldInfo> getAggregatedCollections() {
+		return aggregatedCollections;
 	}
 
-	public List<String> getAggregatedTypes() {
-		return aggregatedTypes;
+	public List<String> getInvolvedServices(){
+		Set<String> resultSet = new HashSet<String>();
+		resultSet.add(getEntity().getName());
+		resultSet.addAll(composedTypes);
+		resultSet.addAll(aggregatedTypes);
+		return new ArrayList<String>(resultSet);
+	}
+	
+	public List<FieldInfo> getTestComposed() {
+		return testComposed;
 	}
 
-	public List<String> getAggregatedTypesFQN() {
-		return aggregatedTypesFQN;
-	}
-
-	public List<String> getReferencedTypes() {
-		List<String> result = new ArrayList<String>();
-		result.addAll(composedTypes);
-		for (String aggregatedType : aggregatedTypes) {
-			if(!result.contains(aggregatedType))
-				result.add(aggregatedType);
-		}
-		return Collections.unmodifiableList(result);
-	}
-
-	public List<String> getReferencedTypesFQN() {
-		List<String> result = new ArrayList<String>();
-		result.addAll(composedTypesFQN);
-		for (String aggregatedTypeFqn : aggregatedTypesFQN) {
-			if(!result.contains(aggregatedTypeFqn))
-				result.add(aggregatedTypeFqn);
-		}
-		return Collections.unmodifiableList(result);
+	public List<FieldInfo> getTestAggregated() {
+		return testAggregated;
 	}
 
 	public JavaClass getEntity() {
@@ -141,19 +141,19 @@ public class EntityInfo {
 		this.entity = entity;
 	}
 	
-	public List<Field<JavaClass>> getSimpleStringFields() {
+	public List<FieldInfo> getSimpleStringFields() {
 		return simpleStringFields;
 	}
 
-	public List<Field<JavaClass>> getSimpleLongFields() {
+	public List<FieldInfo> getSimpleLongFields() {
 		return simpleLongFields;
 	}
 
-	public List<Field<JavaClass>> getSimpleIntegerFields() {
+	public List<FieldInfo> getSimpleIntegerFields() {
 		return simpleIntegerFields;
 	}
 
-	public List<Field<JavaClass>> getSimpleDateFields() {
+	public List<FieldInfo> getSimpleDateFields() {
 		return simpleDateFields;
 	}
 
@@ -161,7 +161,6 @@ public class EntityInfo {
 		return RandomStringUtils.randomAlphabetic(size);
 	}
 
-	private Random random = new Random();
 	public Long randomLong(){
 		return random.nextLong();
 	}
@@ -185,17 +184,24 @@ public class EntityInfo {
 	public Date randomDate(){
 		return new Date();
 	}
+	
+	public BigDecimal randomDecimal(){
+		return BigDecimal.valueOf(random.nextLong());
+	}
 
-	public List<Field<JavaClass>> getSimpleBooleanFields() {
+	public List<FieldInfo> getSimpleBooleanFields() {
 		return simpleBooleanFields;
 	}
 
-	public List<Field<JavaClass>> getSimpleDoubleFields() {
+	public List<FieldInfo> getSimpleDoubleFields() {
 		return simpleDoubleFields;
 	}
 
-	public List<Field<JavaClass>> getSimpleFloatFields() {
+	public List<FieldInfo> getSimpleFloatFields() {
 		return simpleFloatFields;
+	}
+	public List<FieldInfo> getSimpleBigDecimalFields() {
+		return simpleBigDecimalFields;
 	}
 	
 	private final Map<String, List<String>> aggregatedFieldsByType = new HashMap<String, List<String>>();
@@ -235,20 +241,20 @@ public class EntityInfo {
 		return randomSimpleFields.size() + " Fields.";
 	}
 	
-	public boolean containsField(Field<JavaClass> candidate){
+	public boolean containsField(FieldInfo candidate){
 		boolean b = randomSimpleFields.contains(candidate);
 		return b;
 	}
 
-	public List<Field<JavaClass>> getAllSimpleFields() {
+	public List<FieldInfo> getAllSimpleFields() {
 		return allSimpleFields;
 	}
 
-	public List<Field<JavaClass>> getRandomSimpleFields() {
+	public List<FieldInfo> getRandomSimpleFields() {
 		return randomSimpleFields;
 	}
 	
-	public Field<JavaClass> getRandomSimpleField(){
+	public FieldInfo getRandomSimpleField(){
 		if(allSimpleFields.isEmpty()){
 			if(!composed.isEmpty()) return composed.iterator().next();
 			if(!aggregated.isEmpty()) return aggregated.iterator().next();
@@ -258,9 +264,9 @@ public class EntityInfo {
 		return allSimpleFields.iterator().next();
 	}
 	
-	public Field<JavaClass> getSimpleField(String fieldName){
-		for (Field<JavaClass> field : allSimpleFields) {
-			if(field.getName().equals(fieldName)) return field;
+	public FieldInfo getSimpleField(String fieldName){
+		for (FieldInfo field : allSimpleFields) {
+			if(field.getField().getName().equals(fieldName)) return field;
 		}
 		return null;
 	}
@@ -271,7 +277,10 @@ public class EntityInfo {
 	 */
 	private final List<String> simpleFieldTypeImport = new ArrayList<String>();
 	public void importIfRequired(String fieldName){
-		Field<JavaClass> simpleField = getSimpleField(fieldName);
+		FieldInfo simpleField = getSimpleField(fieldName);
+		if(simpleField==null){
+			return;
+		}
 		String qualifiedType = simpleField.getQualifiedType();
 		if(simpleFieldTypeImport.contains(qualifiedType)) return;
 		if(qualifiedType.startsWith("java.lang"))return;
@@ -296,5 +305,71 @@ public class EntityInfo {
 	public Set<String> getPackageImport() {
 		return packageImport;
 	}
+
+	public Set<String> getComposedTypes() {
+		return composedTypes;
+	}
+
+	public Set<String> getComposedCollectionTypes() {
+		return composedCollectionTypes;
+	}
+
+	public Set<String> getComposedTypesFQN() {
+		return composedTypesFQN;
+	}
+
+	public Set<String> getComposedCollectionTypesFQN() {
+		return composedCollectionTypesFQN;
+	}
+
+	public Set<String> getAggregatedTypes() {
+		return aggregatedTypes;
+	}
+
+	public Set<String> getAggregatedCollectionTypes() {
+		return aggregatedCollectionTypes;
+	}
+
+	public Set<String> getAggregatedTypesFQN() {
+		return aggregatedTypesFQN;
+	}
+
+	public Set<String> getAggregatedCollectionTypesFQN() {
+		return aggregatedCollectionTypesFQN;
+	}
+
+	public Random getRandom() {
+		return random;
+	}
 	
+	public Set<String> getReferencedTypes(){
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.addAll(aggregatedTypes);
+		hashSet.addAll(aggregatedCollectionTypes);
+		hashSet.addAll(composedTypes);
+		hashSet.addAll(composedCollectionTypes);
+		return hashSet;
+	}
+
+	public List<String> getReferencedTypesFQN() {
+		HashSet<String> hashSet = new HashSet<String>();
+		hashSet.addAll(aggregatedTypesFQN);
+		hashSet.addAll(aggregatedCollectionTypesFQN);
+		hashSet.addAll(composedTypesFQN);
+		hashSet.addAll(composedCollectionTypesFQN);
+		return new ArrayList<String>(hashSet);
+	}
+
+	public List<FieldInfo> getFieldInfos() {
+		return fieldInfos;
+	}
+	
+	public List<String> getManagedCompositions(){
+		HashSet<String> hashSet = new HashSet<String>();
+		for (FieldInfo fieldInfo : composed) {
+			if(fieldInfo.isAssociationManager()) hashSet.add(fieldInfo.getType());
+		}
+		return new ArrayList<String>(hashSet);
+	}
+
 }

@@ -12,7 +12,7 @@ public class ${entityInfo.entity.getName()}DoD {
 
 	private Random random = new Random();
 
-   <#list entityInfo.composedTypes as composedType>
+   <#list entityInfo.managedCompositions as composedType>
 	private ${composedType}DoD ${composedType?uncap_first}DoD = new ${composedType}DoD();
 
    </#list>
@@ -51,7 +51,9 @@ public class ${entityInfo.entity.getName()}DoD {
 	   </#list>
 	   // set simple float fields
 	   <#list entityInfo.composed as composedField>
+	   <#if composedField.associationManager>
 	   entity.set${composedField.getName()?cap_first}(${composedField.getType()?uncap_first}DoD.newEntity());
+	   </#if>
 
 	   </#list>
 		return entity;
@@ -110,10 +112,12 @@ public class ${entityInfo.entity.getName()}DoD {
 
 	   </#list>
 	   <#list entityInfo.composed as field>
+	   <#if field.associationManager>
 	   List<String> ${field.getName()}List = ${field.getType()?uncap_first}DoD.modify(entity.get${field.getName()?cap_first}());
 	   for (String nested : ${field.getName()}List) {
 	   		result.add("${field.getName()}"+"."+nested);
 	   }
+	   </#if>
 
 	   </#list>
 	   return result;

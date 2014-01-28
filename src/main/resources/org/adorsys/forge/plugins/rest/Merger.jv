@@ -1,5 +1,8 @@
 package org.adorsys.forge.plugins.rest;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.inject.Inject;
 
 public class ${entityName}Merger {
@@ -18,4 +21,23 @@ public class ${entityName}Merger {
 		if(entity.getId()==null)return null;
 		return repository.findBy(entity.getId());
 	}
+
+   
+   public void bindComposedCollection(final Set<${entityName}> entities){
+	   HashSet<${entityName}> oldCol = new HashSet<${entityName}>(entities);
+	   entities.clear();
+	   for (${entityName} entity : oldCol) {
+		   entity = bindComposed(entity);
+		   if(entity!=null)entities.add(entity);
+	   }
+   }
+
+   public void bindAggregatedCollection(final Set<${entityName}> entities){
+	   HashSet<${entityName}> oldCol = new HashSet<${entityName}>(entities);
+	   entities.clear();
+	   for (${entityName} entity : oldCol) {
+		   entity = bindAggregated(entity);
+		   if(entity!=null)entities.add(entity);
+	   }
+   }
 }

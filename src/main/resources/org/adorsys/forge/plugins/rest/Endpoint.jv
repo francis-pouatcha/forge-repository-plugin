@@ -171,6 +171,16 @@ public class ${entityEndpointName} {
 
 	</#list>
 	   
+	<#list entityInfo.composedCollections as field>
+	   // composed collections
+	   ${field.getType()?uncap_first}Merger.bindComposedCollection(entity.get${field.getName()?cap_first}());
+
+	</#list>
+	<#list entityInfo.aggregatedCollections as field>
+	   // aggregated collection
+	   ${field.getType()?uncap_first}Merger.bindAggregatedCollection(entity.get${field.getName()?cap_first}());
+
+	</#list>
 	   return entity;
    }
 }

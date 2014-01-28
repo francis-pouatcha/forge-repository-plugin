@@ -19,9 +19,11 @@ import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 import org.jboss.shrinkwrap.descriptor.api.persistence20.PersistenceDescriptor;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+@Ignore
 @RunWith(Arquillian.class)
 public class ${entityInfo.entity.getName()}ServiceTest
 {
@@ -69,18 +71,21 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testDeleteById()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
+   		
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
       ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
       List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -95,20 +100,14 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start Create object
 	   */
 	   // create ${entityInfo.entity.getName()}
-	   ${entityInfo.entity.getName()}DoD ${entityInfo.entity.getName()?uncap_first}DoD = new ${entityInfo.entity.getName()}DoD();
 	   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 
 		// Instantiate data on demand classes per referencedTypes field type
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
-	   
-	   <#list entityInfo.aggregated as aggregatedField>
+	   <#list entityInfo.testAggregated as aggregatedField>
 	   // Aggregate ${aggregatedField.getName()}
 	   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 	   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
 	   entity.set${aggregatedField.getName()?cap_first}(${aggregatedField.getName()});
-	   
 	   </#list>
 	   ${entityInfo.entity.getName()} created = ${entityInfo.entity.getName()?uncap_first}Service.create(entity);
 	  /*
@@ -143,7 +142,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   </#list>
 	
 	   // delete aggregated fields	   
-	   <#list entityInfo.aggregated as aggregatedField>
+	   <#list entityInfo.testAggregated as aggregatedField>
 	   ${aggregatedField.getType()?uncap_first}SearchResult = ${aggregatedField.getType()?uncap_first}Service.listAll();
 	   ${aggregatedField.getType()?uncap_first}List = ${aggregatedField.getType()?uncap_first}SearchResult.getResultList(); 
 	   for (${aggregatedField.getType()} f : ${aggregatedField.getType()?uncap_first}List) {
@@ -160,18 +159,21 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testUpdate()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
+
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -186,15 +188,9 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start Create object
 	   */
 	   // create ${entityInfo.entity.getName()}
-	   ${entityInfo.entity.getName()}DoD ${entityInfo.entity.getName()?uncap_first}DoD = new ${entityInfo.entity.getName()}DoD();
 	   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 
-		// Instantiate data on demand classes per referencedTypes field type
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
-	   
-	   <#list entityInfo.aggregated as aggregatedField>
+	   <#list entityInfo.testAggregated as aggregatedField>
 	   // Aggregate ${aggregatedField.getName()}
 	   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 	   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -218,18 +214,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testFindById()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -244,15 +242,10 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start Create object
 	   */
 	   // create ${entityInfo.entity.getName()}
-	   ${entityInfo.entity.getName()}DoD ${entityInfo.entity.getName()?uncap_first}DoD = new ${entityInfo.entity.getName()}DoD();
 	   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 
 		// Instantiate data on demand classes per referencedTypes field type
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
-	   
-	   <#list entityInfo.aggregated as aggregatedField>
+	   <#list entityInfo.testAggregated as aggregatedField>
 	   // Aggregate ${aggregatedField.getName()}
 	   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 	   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -273,18 +266,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testLoadReferences()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -299,15 +294,9 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start Create object
 	   */
 	   // create ${entityInfo.entity.getName()}
-	   ${entityInfo.entity.getName()}DoD ${entityInfo.entity.getName()?uncap_first}DoD = new ${entityInfo.entity.getName()}DoD();
 	   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 
-		// Instantiate data on demand classes per referencedTypes field type
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
-	   
-	   <#list entityInfo.aggregated as aggregatedField>
+	   <#list entityInfo.testAggregated as aggregatedField>
 	   // Aggregate ${aggregatedField.getName()}
 	   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 	   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -343,18 +332,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testListAll()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -369,24 +360,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start Create object
 	   */
 	   // create ${entityInfo.entity.getName()}
-	   ${entityInfo.entity.getName()}DoD ${entityInfo.entity.getName()?uncap_first}DoD = new ${entityInfo.entity.getName()}DoD();
-
-		// Instantiate data on demand classes per referencedTypes field type
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
+		int resCount=0;
 	   for (int i = 0; i < 30; i++) {
 		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
 		   entity.set${aggregatedField.getName()?cap_first}(${aggregatedField.getName()});
+         	if(${aggregatedField.getName()}.getClass().equals(entity.getClass()))resCount+=1;
 		   
 		   </#list>
 		   ${entityInfo.entity.getName()} created = ${entityInfo.entity.getName()?uncap_first}Service.create(entity);
-		
+			resCount+=1;
 	   }
 	  /*
 	   * End Create object
@@ -394,25 +381,27 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   
 	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
 	   entityList = searchResult.getResultList();
-	   Assert.assertEquals(30, entityList.size());
+	   Assert.assertEquals(resCount, entityList.size());
    }
 
    @Test
    @RunAsClient
    public void testListAllCursor()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -427,24 +416,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start Create object
 	   */
 	   // create ${entityInfo.entity.getName()}
-	   ${entityInfo.entity.getName()}DoD ${entityInfo.entity.getName()?uncap_first}DoD = new ${entityInfo.entity.getName()}DoD();
-
-		// Instantiate data on demand classes per referencedTypes field type
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
+		int resCount=0;
 	   for (int i = 0; i < 30; i++) {
 		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
 		   entity.set${aggregatedField.getName()?cap_first}(${aggregatedField.getName()});
+         	if(${aggregatedField.getName()}.getClass().equals(entity.getClass()))resCount+=1;
 		   
 		   </#list>
 		   ${entityInfo.entity.getName()} created = ${entityInfo.entity.getName()?uncap_first}Service.create(entity);
-		
+			resCount+=1;		
 	   }
 	  /*
 	   * End Create object
@@ -467,18 +452,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testCount()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -493,23 +480,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * Start Create object
 	   */
 	   // create ${entityInfo.entity.getName()}
-	   ${entityInfo.entity.getName()}DoD ${entityInfo.entity.getName()?uncap_first}DoD = new ${entityInfo.entity.getName()}DoD();
-
-		// Instantiate data on demand classes per referencedTypes field type
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
+      int resCount = 0;
 	   for (int i = 0; i < 30; i++) {
 		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
 		   entity.set${aggregatedField.getName()?cap_first}(${aggregatedField.getName()});
+         	if(${aggregatedField.getName()}.getClass().equals(entity.getClass()))resCount+=1;
 		   
 		   </#list>
 		   ${entityInfo.entity.getName()} created = ${entityInfo.entity.getName()?uncap_first}Service.create(entity);
+           resCount+=1;
 		
 	   }
 	  /*
@@ -517,25 +501,27 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   */
 	   
 	   Long count = ${entityInfo.entity.getName()?uncap_first}Service.count();
-	   Assert.assertEquals(new Long(30), count);
+	   Assert.assertEquals(new Long(resCount), count);
    }
 
    @Test
    @RunAsClient
    public void testFindBy()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -549,14 +535,10 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	  /*
 	   * Start Create object. 
 	   */
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
-	   ${entityInfo.entity.getName()}DoD entityDoD = new ${entityInfo.entity.getName()}DoD();
 	   for (int i = 0; i < 3; i++) {
-		   ${entityInfo.entity.getName()} entity = entityDoD.newEntity();
+		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -569,7 +551,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   String searchFieldName = "${searchFieldName}";
 		Object searchValue=null; 		 
 	   for (int i = 0; i < 7; i++) {
-		   ${entityInfo.entity.getName()} entity = entityDoD.newEntity();
+		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 		   if(searchValue==null){
 		   	    searchValue =  entity.get${searchFieldName?cap_first}();
 		   } else {
@@ -578,7 +560,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 		   		entity.set${searchFieldName?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
 		   }
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -597,7 +579,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
        searchInput.setEntity(searchEntity);
        searchInput.getFieldNames().add(searchFieldName);
 	   searchResult = ${entityInfo.entity.getName()?uncap_first}Service.findBy(searchInput);
-      entityList = searchResult.getResultList();
+       entityList = searchResult.getResultList();
 		Assert.assertEquals(7, entityList.size());
    }
 
@@ -605,18 +587,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testCountBy()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -630,14 +614,10 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	  /*
 	   * Start Create object. 
 	   */
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
-	   ${entityInfo.entity.getName()}DoD entityDoD = new ${entityInfo.entity.getName()}DoD();
 	   for (int i = 0; i < 3; i++) {
-		   ${entityInfo.entity.getName()} entity = entityDoD.newEntity();
+		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -650,7 +630,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   String searchFieldName = "${searchFieldName}";
 		Object searchValue=null; 		 
 	   for (int i = 0; i < 7; i++) {
-		   ${entityInfo.entity.getName()} entity = entityDoD.newEntity();
+		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 		   if(searchValue==null){
 		   	    searchValue =  entity.get${searchFieldName?cap_first}();
 		   } else {
@@ -659,7 +639,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 		   		entity.set${searchFieldName?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
 		   }
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -686,18 +666,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testFindByLike()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -711,14 +693,10 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	  /*
 	   * Start Create object. 
 	   */
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
-	   ${entityInfo.entity.getName()}DoD entityDoD = new ${entityInfo.entity.getName()}DoD();
 	   for (int i = 0; i < 3; i++) {
-		   ${entityInfo.entity.getName()} entity = entityDoD.newEntity();
+		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -731,7 +709,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   String searchFieldName = "${searchFieldName}";
 		Object searchValue=null; 		 
 	   for (int i = 0; i < 7; i++) {
-		   ${entityInfo.entity.getName()} entity = entityDoD.newEntity();
+		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 		   if(searchValue==null){
 		   	    searchValue =  entity.get${searchFieldName?cap_first}();
 		   } else {
@@ -740,7 +718,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 		   		entity.set${searchFieldName?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
 		   }
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -767,18 +745,20 @@ public class ${entityInfo.entity.getName()}ServiceTest
    @RunAsClient
    public void testCountByLike()
    {
+	   <#list entityInfo.involvedServices as entityName>
+	   ${entityName}Service ${entityName?uncap_first}Service = new ${entityName}Service(url.toExternalForm());
+	   ${entityName}DoD ${entityName?uncap_first}DoD = new ${entityName}DoD();
+	   </#list>
 	  /*
 	   * Start cleanup
 	   */   
-	   ${entityInfo.entity.getName()}Service ${entityInfo.entity.getName()?uncap_first}Service = new ${entityInfo.entity.getName()}Service(url.toExternalForm());
   	   ${entityInfo.entity.getName()}SearchResult searchResult = ${entityInfo.entity.getName()?uncap_first}Service.listAll();
        List<${entityInfo.entity.getName()}> entityList = searchResult.getResultList();
-	   for (${entityInfo.entity.getName()} ${entityInfo.entity.getName()?uncap_first} : entityList) {
-		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(${entityInfo.entity.getName()?uncap_first}.getId());
+	   for (${entityInfo.entity.getName()} ent : entityList) {
+		   ${entityInfo.entity.getName()?uncap_first}Service.deleteById(ent.getId());
 	   }
 
 	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}Service ${referencedType?uncap_first}Service = new ${referencedType}Service(url.toExternalForm());
 	   ${referencedType}SearchResult ${referencedType?uncap_first}SearchResult = ${referencedType?uncap_first}Service.listAll();
 	   List<${referencedType}> ${referencedType?uncap_first}List = ${referencedType?uncap_first}SearchResult.getResultList();
 	   for (${referencedType} f : ${referencedType?uncap_first}List) {
@@ -789,14 +769,10 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   * End cleanup
 	   * Start Create object. 
 	   */
-	   <#list entityInfo.referencedTypes as referencedType>
-	   ${referencedType}DoD ${referencedType?uncap_first}DoD = new ${referencedType}DoD();
-	   </#list>
-	   ${entityInfo.entity.getName()}DoD entityDoD = new ${entityInfo.entity.getName()}DoD();
 	   for (int i = 0; i < 3; i++) {
-		   ${entityInfo.entity.getName()} entity = entityDoD.newEntity();
+		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
@@ -809,7 +785,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   String searchFieldName = "${searchFieldName}";
 		Object searchValue=null; 		 
 	   for (int i = 0; i < 7; i++) {
-		   ${entityInfo.entity.getName()} entity = entityDoD.newEntity();
+		   ${entityInfo.entity.getName()} entity = ${entityInfo.entity.getName()?uncap_first}DoD.newEntity();
 		   if(searchValue==null){
 		   	    searchValue =  entity.get${searchFieldName?cap_first}();
 		   } else {
@@ -818,7 +794,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 		   		entity.set${searchFieldName?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
 		   }
 	
-		   <#list entityInfo.aggregated as aggregatedField>
+		   <#list entityInfo.testAggregated as aggregatedField>
 		   // Aggregate ${aggregatedField.getName()}
 		   ${aggregatedField.getType()} ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}DoD.newEntity();
 		   ${aggregatedField.getName()} = ${aggregatedField.getType()?uncap_first}Service.create(${aggregatedField.getName()});
