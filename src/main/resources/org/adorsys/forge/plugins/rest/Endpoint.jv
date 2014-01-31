@@ -2,6 +2,7 @@ package org.adorsys.forge.plugins.rest;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.ejb.Stateless;
@@ -41,7 +42,7 @@ public class ${entityEndpointName} {
 	@Produces({"application/json","application/xml"})
 	public ${entityName} create(${entityName} entity) {
 	  	repository.save(attach(entity));
-		return entity;
+		return detach(entity);
 	}
 
 	@DELETE
@@ -52,7 +53,7 @@ public class ${entityEndpointName} {
 			return Response.status(Status.NOT_FOUND).build();
 		}
 		repository.remove(entity);
-		return Response.ok(entity).build();
+		return Response.ok(detach(entity)).build();
 	}
 
 	@PUT
@@ -61,7 +62,7 @@ public class ${entityEndpointName} {
     @Consumes({"application/json","application/xml"})
 	public ${entityName} update(${entityName} entity) {
 		${entityName} saved = repository.save(attach(entity));
-		return saved;
+		return detach(saved);
 	}
 
     @GET
@@ -73,7 +74,7 @@ public class ${entityEndpointName} {
 		if (entity == null) {
 			return Response.status(Status.NOT_FOUND).build();
 		}
-		return Response.ok(entity).build();
+		return Response.ok(detach(entity)).build();
 	}
 
 	@GET
@@ -84,7 +85,8 @@ public class ${entityEndpointName} {
       ${entityName}SearchInput searchInput = new ${entityName}SearchInput();
       searchInput.setStart(start);
       searchInput.setMax(max);
-      return new ${entityName}SearchResult((long) resultList.size(), resultList, searchInput);
+      return new ${entityName}SearchResult((long) resultList.size(), 
+				detach(resultList), detach(searchInput));
 	}
 
 	@GET
@@ -103,7 +105,8 @@ public class ${entityEndpointName} {
       Long count = repository.count(searchInput.getEntity(), attributes);
       List<${entityName}> resultList = repository.findBy(searchInput.getEntity(),
             searchInput.getStart(), searchInput.getMax(), attributes);
-      return new ${entityName}SearchResult(count, resultList, searchInput);
+      return new ${entityName}SearchResult(count, 
+				detach(resultList), detach(searchInput));
    }
 
 	@POST
@@ -124,7 +127,8 @@ public class ${entityEndpointName} {
       Long countLike = repository.countLike(searchInput.getEntity(), attributes);
       List<${entityName}> resultList = repository.findByLike(searchInput.getEntity(),
             searchInput.getStart(), searchInput.getMax(), attributes);
-      return new ${entityName}SearchResult(countLike, resultList, searchInput);
+      return new ${entityName}SearchResult(countLike, 
+				detach(resultList), detach(searchInput));
    }
 
 
@@ -159,6 +163,7 @@ public class ${entityEndpointName} {
 	}
 	
    private ${entityName} attach(${entityName} entity){
+		if(entity==null) return null;
 	   
 	<#list entityInfo.getComposed() as field>
 	   // composed
@@ -170,17 +175,74 @@ public class ${entityEndpointName} {
 	   entity.set${field.getName()?cap_first}(${field.getType()?uncap_first}Merger.bindAggregated(entity.get${field.getName()?cap_first}()));
 
 	</#list>
-	   
 	<#list entityInfo.composedCollections as field>
 	   // composed collections
-	   ${field.getType()?uncap_first}Merger.bindComposedCollection(entity.get${field.getName()?cap_first}());
+	   ${field.getType()?uncap_first}Merger.bindComposed(entity.get${field.getName()?cap_first}());
 
 	</#list>
 	<#list entityInfo.aggregatedCollections as field>
 	   // aggregated collection
-	   ${field.getType()?uncap_first}Merger.bindAggregatedCollection(entity.get${field.getName()?cap_first}());
+	   ${field.getType()?uncap_first}Merger.bindAggregated(entity.get${field.getName()?cap_first}());
 
 	</#list>
 	   return entity;
    }
+   private static final List<String> emptyList = Collections.emptyList();
+	
+	<#list entityInfo.getComposed() as field>
+	<#if field.hasDisplayFields()>
+	private static final List<String> ${field.getName()}Fields = Arrays.asList(${field.displayedFields});
+	<#else>
+	private static final List<String> ${field.getName()}Fields = emptyList;
+	</#if>
+
+	</#list>
+	<#list entityInfo.getAggregated() as field>
+	<#if field.hasDisplayFields()>
+	private static final List<String> ${field.getName()}Fields = Arrays.asList(${field.displayedFields});
+	<#else>
+	private static final List<String> ${field.getName()}Fields = emptyList;
+	</#if>
+
+	</#list>
+   private ${entityName} detach(${entityName} entity){
+		if(entity==null) return null;
+	   
+	<#list entityInfo.getComposed() as field>
+	   // composed
+	   entity.set${field.getName()?cap_first}(${field.getType()?uncap_first}Merger.unbind(entity.get${field.getName()?cap_first}(), ${field.getName()}Fields));
+
+	</#list>
+	<#list entityInfo.getAggregated() as field>
+	   // aggregated
+	   entity.set${field.getName()?cap_first}(${field.getType()?uncap_first}Merger.unbind(entity.get${field.getName()?cap_first}(), ${field.getName()}Fields));
+
+	</#list>
+	<#list entityInfo.composedCollections as field>
+	   // composed collections
+	   ${field.getType()?uncap_first}Merger.unbind(entity.get${field.getName()?cap_first}());
+
+	</#list>
+	<#list entityInfo.aggregatedCollections as field>
+	   // aggregated collection
+	   ${field.getType()?uncap_first}Merger.unbind(entity.get${field.getName()?cap_first}());
+
+	</#list>
+	   return entity;
+   }
+   
+	private List<${entityName}> detach(List<${entityName}> list) {
+		if(list==null) return list;
+		List<${entityName}> result = new ArrayList<${entityName}>();
+		for (${entityName} entity : list) {
+			result.add(detach(entity));
+		}
+		return result;
+	}
+	
+	private ${entityName}SearchInput detach(${entityName}SearchInput searchInput){
+		searchInput.setEntity(detach(searchInput.getEntity()));
+		return searchInput;
+	}
+   
 }

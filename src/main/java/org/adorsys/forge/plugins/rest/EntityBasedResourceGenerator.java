@@ -1,23 +1,20 @@
 package org.adorsys.forge.plugins.rest;
 
 import java.io.FileNotFoundException;
-import java.io.ObjectInputStream.GetField;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
-import javax.persistence.PrePersist;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.adorsys.forge.plugins.repo.RepositoryFacet;
 import org.adorsys.forge.plugins.utils.EntityInfo;
 import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
 import org.adorsys.forge.plugins.utils.PluginUtils;
 import org.adorsys.forge.plugins.utils.RepoGeneratedResources;
 import org.jboss.forge.parser.JavaParser;
-import org.jboss.forge.parser.java.Annotation;
 import org.jboss.forge.parser.java.JavaClass;
 import org.jboss.forge.parser.java.JavaInterface;
-import org.jboss.forge.parser.java.Method;
 import org.jboss.forge.project.facets.JavaSourceFacet;
 import org.jboss.forge.shell.ShellMessages;
 import org.jboss.forge.shell.plugins.PipeOut;
@@ -103,6 +100,19 @@ public class EntityBasedResourceGenerator {
 		}
 		
 		return restResource;
+	}
+	
+	public void writeMergerUtils(){
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		String output = processor.processTemplate(map,
+				"org/adorsys/forge/plugins/rest/MergerUtils.ftl");
+		JavaClass mergerUtils = JavaParser.parse(JavaClass.class, output);
+		mergerUtils.setPackage(pluginUtils.getRestPackageName());
+		try {
+			java.saveJavaSource(mergerUtils);
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 }

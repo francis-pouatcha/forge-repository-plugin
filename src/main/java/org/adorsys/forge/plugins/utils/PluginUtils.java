@@ -21,6 +21,7 @@ import javax.persistence.Version;
 
 import org.adorsys.javaext.display.Association;
 import org.adorsys.javaext.display.AssociationType;
+import org.adorsys.javaext.relation.RelationshipTable;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.forge.env.Configuration;
 import org.jboss.forge.parser.java.Annotation;
@@ -421,11 +422,25 @@ public class PluginUtils {
 		Field<JavaClass> field = fieldInfo.getField();
 		Annotation<JavaClass> associationAnnotation = field
 				.getAnnotation(Association.class);
-		if (associationAnnotation == null)
-			throw new IllegalStateException("Missing association annotation.");
+		if (associationAnnotation == null){
+			if(entityInfo.getEntity().hasAnnotation(RelationshipTable.class)){
+				processToOneRelationship(toOneAnnotation, fieldInfo, entityInfo);
+				return;
+			} else {
+				throw new IllegalStateException("Missing association annotation.");
+			}
+		}
 		
 		String selectionModeAnnotation = associationAnnotation.getStringValue("selectionMode");
 		if(StringUtils.isNotBlank(selectionModeAnnotation))fieldInfo.setAssociationManager(true);
+		
+		String displayedFields = associationAnnotation.getLiteralValue("fields");
+		displayedFields=displayedFields.trim();
+		if(displayedFields.startsWith("{"))
+			displayedFields=StringUtils.substringAfter(displayedFields, "{");
+		if(displayedFields.endsWith("}"))
+			displayedFields = StringUtils.substringAfter(displayedFields, "}");
+		fieldInfo.setDisplayedFields(displayedFields);
 		
 		AssociationType associationType = associationAnnotation.getEnumValue(
 				AssociationType.class, "associationType");
@@ -475,6 +490,31 @@ public class PluginUtils {
 		}
 	}
 
+	private void processToOneRelationship(Annotation<JavaClass> toOneAnnotation,
+			FieldInfo fieldInfo, EntityInfo entityInfo) {
+		Field<JavaClass> field = fieldInfo.getField();
+
+		fieldInfo.setDisplayedFields("");
+		
+		entityInfo.getAggregated().add(fieldInfo);
+		if (!entityInfo.getAggregatedFieldsByType().containsKey(
+				field.getType()))
+			entityInfo.getAggregatedFieldsByType().put(field.getType(),
+					new ArrayList<String>());
+		entityInfo.getAggregatedFieldsByType().get(field.getType())
+				.add(field.getName());
+		if (!entityInfo.getAggregatedTypes().contains(field.getType())) {
+			entityInfo.getAggregatedTypes().add(field.getType());
+			entityInfo.getAggregatedTypesFQN()
+					.add(field.getQualifiedType());
+		}
+		entityInfo.getAggregatedTypes().add(field.getType());
+		entityInfo.getAggregatedTypesFQN().add(field.getQualifiedType());
+		if (!field.getType().equals(entityInfo.getEntity().getName())) {
+			entityInfo.getTestAggregated().add(fieldInfo);
+		}
+	}
+	
 	private void processToMany(Annotation<JavaClass> toManyAnnotation,
 			FieldInfo fieldInfo, EntityInfo entityInfo) {
 		Field<JavaClass> field = fieldInfo.getField();
@@ -490,14 +530,19 @@ public class PluginUtils {
 				AssociationType.class, "associationType");
 		if (associationType == null)
 			throw new IllegalStateException("Missing association type.");
-		String targetEntityAnnotationValue = associationAnnotation
+
+		JavaClass targetEntity = null;
+		String targetEntityAnnotationValue = toManyAnnotation.getStringValue("targetEntity");
+		if(StringUtils.isBlank(targetEntityAnnotationValue))
+			targetEntityAnnotationValue = associationAnnotation
 				.getStringValue("targetEntity");
+
 		if (StringUtils.isBlank(targetEntityAnnotationValue))
 			throw new IllegalStateException(
 					"Missing targetEntity annotation value annotation.");
+
 		targetEntityAnnotationValue = targetEntityAnnotationValue.replaceAll(
 				".class", ".java");
-		JavaClass targetEntity = null;
 		try {
 			targetEntity = findEntity(targetEntityAnnotationValue, entityInfo.getEntity());
 		} catch (FileNotFoundException e) {

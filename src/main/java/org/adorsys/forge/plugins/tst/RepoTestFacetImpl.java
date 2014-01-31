@@ -50,10 +50,6 @@ public class RepoTestFacetImpl extends BaseJavaEEFacet implements RepoTestFacet 
 				.setArtifactId("junit")
 				.setVersion("4.11").setScopeType(ScopeType.TEST),
 				(Dependency)DependencyBuilder.create()
-				.setGroupId("org.apache.commons")
-				.setArtifactId("commons-lang3")
-				.setVersion("3.11").setScopeType(ScopeType.TEST),
-				(Dependency)DependencyBuilder.create()
 				.setGroupId("org.jboss.shrinkwrap.descriptors")
 				.setArtifactId("shrinkwrap-descriptors-api-javaee")
 				.setScopeType(ScopeType.TEST),

@@ -2,6 +2,7 @@ package org.adorsys.forge.plugins.rest;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -23,7 +24,7 @@ public class ${entityName}Merger {
 	}
 
    
-   public void bindComposedCollection(final Set<${entityName}> entities){
+   public void bindComposed(final Set<${entityName}> entities){
 	   HashSet<${entityName}> oldCol = new HashSet<${entityName}>(entities);
 	   entities.clear();
 	   for (${entityName} entity : oldCol) {
@@ -32,12 +33,27 @@ public class ${entityName}Merger {
 	   }
    }
 
-   public void bindAggregatedCollection(final Set<${entityName}> entities){
+   public void bindAggregated(final Set<${entityName}> entities){
 	   HashSet<${entityName}> oldCol = new HashSet<${entityName}>(entities);
 	   entities.clear();
 	   for (${entityName} entity : oldCol) {
 		   entity = bindAggregated(entity);
 		   if(entity!=null)entities.add(entity);
 	   }
+   }
+
+
+   public ${entityName} unbind(final ${entityName} entity, List<String> fieldList){
+	   if(entity==null)return null;
+	   ${entityName} newEntity = new ${entityName}();
+	   newEntity.setId(entity.getId());
+	   newEntity.setVersion(entity.getVersion());
+		MergerUtils.copyFields(entity, newEntity, fieldList);
+	   return newEntity;
+   }
+   
+   public Set<${entityName}> unbind(final Set<${entityName}> entities){
+	   if(entities==null)return null;
+	   return new HashSet<${entityName}>();
    }
 }

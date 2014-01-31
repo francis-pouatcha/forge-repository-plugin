@@ -57,6 +57,10 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 					.setArtifactId("deltaspike-data-module-impl")
 					.setVersion("0.5").setScopeType(ScopeType.COMPILE),
 				(Dependency) DependencyBuilder.create()
+					.setGroupId("org.apache.commons")
+					.setArtifactId("commons-lang3")
+					.setVersion("3.1").setScopeType(ScopeType.COMPILE),
+				(Dependency) DependencyBuilder.create()
 				.setGroupId("javax.enterprise")
 				.setArtifactId("cdi-api")
 				.setScopeType(ScopeType.PROVIDED),					
@@ -124,7 +128,7 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 			java.saveJavaSource(dataSourceProducer);
 		} catch (FileNotFoundException e) {
 			throw new IllegalStateException(e);
-		}
+		}		
 		
 		String beansXMLRelativeFileName = "META-INF" + File.separator + "beans.xml";
 		ResourceFacet resources = project.getFacet(ResourceFacet.class);

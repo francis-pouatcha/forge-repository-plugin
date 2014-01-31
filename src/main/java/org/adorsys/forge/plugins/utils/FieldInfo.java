@@ -1,5 +1,9 @@
 package org.adorsys.forge.plugins.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.forge.parser.java.Field;
 import org.jboss.forge.parser.java.JavaClass;
 
@@ -20,6 +24,8 @@ public class FieldInfo {
 	private String sipmleFieldType;
 	
 	private boolean associationManager;
+	
+	private String displayedFields;
 	
 	public Field<JavaClass> getField() {
 		return field;
@@ -98,4 +104,17 @@ public class FieldInfo {
 	public void setAssociationManager(boolean associationManager) {
 		this.associationManager = associationManager;
 	}
+
+	public String getDisplayedFields() {
+		return displayedFields;
+	}
+
+	public void setDisplayedFields(String displayedFields) {
+		this.displayedFields = displayedFields;
+	}
+	
+	public boolean hasDisplayFields(){
+		return StringUtils.isNotBlank(displayedFields);
+	}
+
 }

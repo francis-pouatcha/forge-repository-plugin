@@ -2,7 +2,9 @@ package org.adorsys.forge.plugins.rest;
 
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
@@ -14,9 +16,11 @@ import org.adorsys.forge.plugins.utils.ContentTypeCompleter;
 import org.adorsys.forge.plugins.utils.PluginUtils;
 import org.adorsys.forge.plugins.utils.RepoGeneratedResources;
 import org.jboss.forge.env.Configuration;
+import org.jboss.forge.parser.JavaParser;
 import org.jboss.forge.parser.java.JavaClass;
 import org.jboss.forge.parser.java.JavaInterface;
 import org.jboss.forge.project.Project;
+import org.jboss.forge.project.facets.JavaSourceFacet;
 import org.jboss.forge.project.facets.events.InstallFacets;
 import org.jboss.forge.resources.Resource;
 import org.jboss.forge.resources.java.JavaResource;
@@ -92,6 +96,7 @@ public class Rest2Plugin implements Plugin {
 			ShellMessages.success(out,
 					"Rest Web Services (JAX-RS) is installed.");
 		}
+		entityResourceGenerator.writeMergerUtils();		
 	}
 
 	@SuppressWarnings("unchecked")
