@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -21,6 +22,10 @@ import javax.persistence.Version;
 
 import org.adorsys.javaext.display.Association;
 import org.adorsys.javaext.display.AssociationType;
+import org.adorsys.javaext.display.ToStringField;
+import org.adorsys.javaext.list.ListField;
+import org.adorsys.javaext.relation.Relationship;
+import org.adorsys.javaext.relation.RelationshipEnd;
 import org.adorsys.javaext.relation.RelationshipTable;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.forge.env.Configuration;
@@ -412,6 +417,15 @@ public class PluginUtils {
 				fieldInfo.setSimpleField(true);
 				fieldInfo.setFieldType(field.getType());
 			}
+			
+		}
+
+		if(entityInfo.isRelationship()){
+			try {
+				processRelationship(entity, entityInfo);
+			} catch (FileNotFoundException e) {
+				throw new IllegalStateException(e);
+			}
 		}
 
 		return entityInfo;
@@ -424,7 +438,11 @@ public class PluginUtils {
 				.getAnnotation(Association.class);
 		if (associationAnnotation == null){
 			if(entityInfo.getEntity().hasAnnotation(RelationshipTable.class)){
-				processToOneRelationship(toOneAnnotation, fieldInfo, entityInfo);
+				try {
+					processToOneRelationship(toOneAnnotation, fieldInfo, entityInfo);
+				} catch (FileNotFoundException e) {
+					throw new IllegalStateException(e);
+				}
 				return;
 			} else {
 				throw new IllegalStateException("Missing association annotation.");
@@ -434,14 +452,38 @@ public class PluginUtils {
 		String selectionModeAnnotation = associationAnnotation.getStringValue("selectionMode");
 		if(StringUtils.isNotBlank(selectionModeAnnotation))fieldInfo.setAssociationManager(true);
 		
-		String displayedFields = associationAnnotation.getLiteralValue("fields");
-		displayedFields=displayedFields.trim();
-		if(displayedFields.startsWith("{"))
-			displayedFields=StringUtils.substringAfter(displayedFields, "{");
-		if(displayedFields.endsWith("}"))
-			displayedFields = StringUtils.substringAfter(displayedFields, "}");
+		JavaClass targetEntity = null;
+		String targetEntityAnnotationValue = toOneAnnotation.getStringValue("targetEntity");
+		if(StringUtils.isBlank(targetEntityAnnotationValue))
+			targetEntityAnnotationValue = associationAnnotation
+				.getStringValue("targetEntity");
+
+		if (StringUtils.isBlank(targetEntityAnnotationValue))
+			targetEntityAnnotationValue = field.getType();
+
+		targetEntityAnnotationValue = targetEntityAnnotationValue.replaceAll(
+				".class", ".java");
+		try {
+			targetEntity = findEntity(targetEntityAnnotationValue, entityInfo.getEntity());
+		} catch (FileNotFoundException e) {
+			// noop.
+		}
+		fieldInfo.setTargetEntity(targetEntity);
+		
+		String displayedFields = readDisplayFields(associationAnnotation);
+		if(StringUtils.isBlank(displayedFields) && targetEntity!=null){
+			displayedFields = readListFields(targetEntity);
+		}
+		if(StringUtils.isBlank(displayedFields) && targetEntity!=null){
+			displayedFields = readToStringFields(targetEntity);
+		}
 		fieldInfo.setDisplayedFields(displayedFields);
 		
+		String mappedByStringValue = toOneAnnotation.getStringValue("mappedBy");
+		if(StringUtils.isNotBlank(mappedByStringValue)){
+			fieldInfo.setMappedBy(mappedByStringValue);
+		}
+
 		AssociationType associationType = associationAnnotation.getEnumValue(
 				AssociationType.class, "associationType");
 		if (associationType == null)
@@ -489,13 +531,180 @@ public class PluginUtils {
 			throw new IllegalStateException("Unknown association type");
 		}
 	}
+	
+	private void processRelationship(JavaClass relationshipClass, EntityInfo relEntityInfo) throws FileNotFoundException{
+		
+		Field<JavaClass> sourceRelationField = relationshipClass.getField("source");
+		Field<JavaClass> targetRelationField = relationshipClass.getField("target");
+		
+		/*
+		 * Find the JavaClass of the field and process all field of this type
+		 * departing from there.
+		 */
+		String sourceEndFQN = sourceRelationField.getQualifiedType();
+		JavaClass sourceEndClass = findEntity(sourceEndFQN, relationshipClass);
+		/*
+		 * Keep track of each field of the source entity that references 
+		 * this relation as a source.
+		 */
+		List<Field<JavaClass>> sourceFields = sourceEndClass.getFields();
+		for (Field<JavaClass> sourceField : sourceFields) {
+			// The field must carry a Relationship annotation.
+			if(!sourceField.hasAnnotation(Relationship.class)) continue;
+			
+			Annotation<JavaClass> sourceRelationshipAnnotation = sourceField.getAnnotation(Relationship.class);
+			// Association End must be source.
+			RelationshipEnd relationshipEnd = sourceRelationshipAnnotation.getEnumValue(RelationshipEnd.class, "end");
+			if(!RelationshipEnd.SOURCE.equals(relationshipEnd)) continue;
 
+			// The field class muss be of the same type as 
+			if(!sourceField.hasAnnotation(OneToMany.class)) throw new IllegalStateException("Relationship must have the annotation oneToMany");
+			Annotation<JavaClass> oneToManyAnnotation = sourceField.getAnnotation(OneToMany.class);
+			String targetEntityAnnotationValue = oneToManyAnnotation.getStringValue("targetEntity");
+			if(StringUtils.isBlank(targetEntityAnnotationValue))throw new IllegalStateException("Missing targetEntity");
+			if(targetEntityAnnotationValue.endsWith(".class"))targetEntityAnnotationValue=StringUtils.substringBeforeLast(targetEntityAnnotationValue, ".");
+			if(targetEntityAnnotationValue.contains(".")){
+				if(!targetEntityAnnotationValue.equals(relationshipClass.getQualifiedName())) continue;
+			} else {
+				if(!targetEntityAnnotationValue.equals(relationshipClass.getName())) continue;
+			}			
+			
+			// Source qualifier is the name of the association in the source end.
+			// This also equivalent to the name of the field.
+			String sourceQualifier = sourceField.getName();
+			String targetQualifier = sourceRelationshipAnnotation.getStringValue("targetQualifier");
+			if(StringUtils.isBlank(targetQualifier))targetQualifier="source";
+			RelationKey relationKey = new RelationKey(sourceQualifier, targetQualifier);
+			Relation relation = relEntityInfo.getRelationMap().get(relationKey);
+			if(relation==null) {
+				relation=new Relation(new SourceEnd(sourceQualifier), new TargetEnd(targetQualifier));
+				relEntityInfo.getRelationMap().put(relationKey, relation);
+			}
+			relation.getSourceEnd().setField(sourceField);
+		} 
+		
+		/*
+		 * Find the JavaClass of the field and process all field of this type
+		 * departing from there.
+		 */
+		String targetEndFQN = targetRelationField.getQualifiedType();
+		JavaClass targetEndClass = findEntity(targetEndFQN, relationshipClass);
+		/*
+		 * Keep track of each field of the target entity that references 
+		 * this relation as a target.
+		 */
+		List<Field<JavaClass>> targetFields = targetEndClass.getFields();
+		for (Field<JavaClass> targetField : targetFields) {
+
+			// The field must carry a Relationship annotation.
+			if(!targetField.hasAnnotation(Relationship.class)) continue;
+			Annotation<JavaClass> targetRelationshipAnnotation = targetField.getAnnotation(Relationship.class);
+			// Association End must be target.
+			RelationshipEnd relationshipEnd = targetRelationshipAnnotation.getEnumValue(RelationshipEnd.class, "end");
+			if(!RelationshipEnd.TARGET.equals(relationshipEnd)) continue;
+
+			// The field class muss be of the same type as 
+			if(!targetField.hasAnnotation(OneToMany.class)) throw new IllegalStateException("Relationship must have the annotation oneToMany");
+			Annotation<JavaClass> oneToManyAnnotation = targetField.getAnnotation(OneToMany.class);
+			String targetEntityAnnotationValue = oneToManyAnnotation.getStringValue("targetEntity");
+			if(StringUtils.isBlank(targetEntityAnnotationValue))throw new IllegalStateException("Missing targetEntity");
+			if(targetEntityAnnotationValue.endsWith(".class"))targetEntityAnnotationValue=StringUtils.substringBeforeLast(targetEntityAnnotationValue, ".");
+			if(targetEntityAnnotationValue.contains(".")){
+				if(!targetEntityAnnotationValue.equals(relationshipClass.getQualifiedName())) continue;
+			} else {
+				if(!targetEntityAnnotationValue.equals(relationshipClass.getName())) continue;
+			}
+			
+			// Target qualifier is the name of the association in the target end.
+			// This also equivalent to the name of the field.
+			String targetQualifier = targetField.getName();
+			String sourceQualifier = targetRelationshipAnnotation.getStringValue("sourceQualifier");
+			if(StringUtils.isBlank(sourceQualifier))throw new IllegalStateException("Source qualifier cn not be null");
+			RelationKey relationKey = new RelationKey(sourceQualifier,targetQualifier);
+			Relation relation = relEntityInfo.getRelationMap().get(relationKey);
+			if(relation==null) {
+				relation=new Relation(new SourceEnd(sourceQualifier), new TargetEnd(targetQualifier));
+				relEntityInfo.getRelationMap().put(relationKey, relation);
+			}
+			relation.getTargetEnd().setField(targetField);
+		} 
+		
+		/*
+		 * For now each relationship that defined display field on the oder end has it set.
+		 * 
+		 * Now we will compute the display field define at the class level on each end
+		 * and use it when nothing is available.
+		 */
+		String sourceClassDisplayedFields = readListFields(sourceEndClass);
+		if(StringUtils.isBlank(sourceClassDisplayedFields))
+			sourceClassDisplayedFields=readToStringFields(sourceEndClass);
+		
+		String targetClassDisplayedFields = readListFields(targetEndClass);
+		if(StringUtils.isBlank(targetClassDisplayedFields))
+			targetClassDisplayedFields=readToStringFields(targetEndClass);
+
+		FieldInfo sourceFieldInfo = null;
+		FieldInfo targetFieldInfo = null;
+		List<FieldInfo> fieldInfos = relEntityInfo.getFieldInfos();
+		for (FieldInfo fi : fieldInfos) {
+			if(fi.getName().equals("source")){
+				sourceFieldInfo=fi;
+			} else if (fi.getName().equals("target")){
+				targetFieldInfo=fi;
+			}
+		}
+		sourceFieldInfo.setDisplayedFields(sourceClassDisplayedFields);
+		targetFieldInfo.setDisplayedFields(targetClassDisplayedFields);
+		
+		Collection<Relation> relations = relEntityInfo.getRelationMap().values();
+		for (Relation relation : relations) {
+			String identifier = relation.getIdentifier();
+			
+			Field<JavaClass> sourceField = relation.getSourceEnd().getField();
+			/*
+			 * Attention, the display fields listed here is for the inverse side of the relation
+			 */
+			Annotation<JavaClass> sourceAssociationAnnotation = sourceField.getAnnotation(Association.class);
+			String targetDisplayedFields = readDisplayFields(sourceAssociationAnnotation);
+			if(StringUtils.isNotBlank(targetDisplayedFields)){
+				relation.getTargetEnd().setDisplayFields(targetDisplayedFields);
+				targetFieldInfo.putDisplayField(identifier, targetDisplayedFields);
+			} else {
+				relation.getTargetEnd().setDisplayFields(targetClassDisplayedFields);
+				targetFieldInfo.putDisplayField(identifier, targetClassDisplayedFields);
+			}
+
+			Field<JavaClass> targetField = relation.getTargetEnd().getField();
+			/*
+			 * Target field is optional.
+			 */
+			if(targetField!=null){ 
+				/*
+				 * Attention, the display fields listed here is for the inverse side of the relation
+				 */
+				Annotation<JavaClass> targetAssociationAnnotation = targetField.getAnnotation(Association.class);
+				String sourceDisplayedFields = readDisplayFields(targetAssociationAnnotation);
+				if(StringUtils.isNotBlank(sourceDisplayedFields)){
+					relation.getSourceEnd().setDisplayFields(sourceDisplayedFields);
+					sourceFieldInfo.putDisplayField(identifier, sourceDisplayedFields);
+				} else {
+					relation.getSourceEnd().setDisplayFields(sourceClassDisplayedFields);
+					sourceFieldInfo.putDisplayField(identifier, sourceClassDisplayedFields);
+				}
+			} else {
+				sourceFieldInfo.putDisplayField(identifier, sourceClassDisplayedFields);
+			}
+		}
+	}
+
+	/*
+	 * A toOne relationship is simple. It has a source and a target. So this field 
+	 * either the source or the target of the toOne relationship.
+	 */
 	private void processToOneRelationship(Annotation<JavaClass> toOneAnnotation,
-			FieldInfo fieldInfo, EntityInfo entityInfo) {
+			FieldInfo fieldInfo, EntityInfo entityInfo) throws FileNotFoundException {
 		Field<JavaClass> field = fieldInfo.getField();
 
-		fieldInfo.setDisplayedFields("");
-		
 		entityInfo.getAggregated().add(fieldInfo);
 		if (!entityInfo.getAggregatedFieldsByType().containsKey(
 				field.getType()))
@@ -550,6 +759,21 @@ public class PluginUtils {
 					+ targetEntityAnnotationValue + " not found");
 		}
 		fieldInfo.setTargetEntity(targetEntity);
+		
+		String mappedByStringValue = toManyAnnotation.getStringValue("mappedBy");
+		if(StringUtils.isNotBlank(mappedByStringValue)){
+			fieldInfo.setMappedBy(mappedByStringValue);
+		}
+		
+		String displayedFields = readDisplayFields(associationAnnotation);
+		if(StringUtils.isBlank(displayedFields) && targetEntity!=null){
+			displayedFields = readListFields(targetEntity);
+		}
+		if(StringUtils.isBlank(displayedFields) && targetEntity!=null){
+			displayedFields = readToStringFields(targetEntity);
+		}
+		fieldInfo.setDisplayedFields(displayedFields);
+		
 		switch (associationType) {
 		case AGGREGATION:
 			entityInfo.getAggregatedCollections().add(fieldInfo);
@@ -568,6 +792,7 @@ public class PluginUtils {
 			break;
 
 		case COMPOSITION:
+			if(StringUtils.isBlank(fieldInfo.getMappedBy())) throw new IllegalStateException("Missing mapped by in a to many annotation value.");
 			entityInfo.getComposedCollections().add(fieldInfo);
 			if (!entityInfo.getComposedFieldsByType().containsKey(
 					targetEntity.getName()))
@@ -672,5 +897,41 @@ public class PluginUtils {
 					"Current resource is not a JavaClass!");
 		}
 		return (JavaClass) source;
+	}
+	
+	private String readDisplayFields(Annotation<JavaClass> associationAnnotation){
+		String displayedFields = associationAnnotation.getLiteralValue("fields");
+		if(displayedFields==null) return null; 
+		displayedFields=displayedFields.trim();
+		if(displayedFields.startsWith("{"))
+			displayedFields=StringUtils.substringAfter(displayedFields, "{");
+		if(displayedFields.endsWith("}"))
+			displayedFields = StringUtils.substringBefore(displayedFields, "}");
+		return displayedFields;
+		
+	}
+	
+	private String readListFields(JavaClass targetEntity) {
+		Annotation<JavaClass> listFieldAnnotation = targetEntity.getAnnotation(ListField.class);
+		if(listFieldAnnotation==null)return null;
+		String listFields = listFieldAnnotation.getLiteralValue();
+		listFields=listFields.trim();
+		if(listFields.startsWith("{"))
+			listFields=StringUtils.substringAfter(listFields, "{");
+		if(listFields.endsWith("}"))
+			listFields = StringUtils.substringBefore(listFields, "}");
+		return listFields;
+	}
+
+	private String readToStringFields(JavaClass targetEntity) {
+		Annotation<JavaClass> toStringFieldAnnotation = targetEntity.getAnnotation(ToStringField.class);
+		if(toStringFieldAnnotation==null)return null;
+		String toStringFields = toStringFieldAnnotation.getLiteralValue();
+		toStringFields=toStringFields.trim();
+		if(toStringFields.startsWith("{"))
+			toStringFields=StringUtils.substringAfter(toStringFields, "{");
+		if(toStringFields.endsWith("}"))
+			toStringFields = StringUtils.substringBefore(toStringFields, "}");
+		return toStringFields;
 	}
 }

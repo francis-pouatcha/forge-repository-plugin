@@ -12,10 +12,12 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.adorsys.javaext.relation.RelationshipTable;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jboss.forge.parser.java.JavaClass;
 
 public class EntityInfo {
+	private static final List<FieldInfo> emptyFields = Collections.emptyList();
 
 	private String idFieldName;
 	
@@ -77,6 +79,9 @@ public class EntityInfo {
 	private final Random random = new Random();
     private final List<FieldInfo> fieldInfos = new ArrayList<FieldInfo>();
 
+	private final Map<RelationKey, Relation> relationMap = new HashMap<RelationKey, Relation>();
+	
+    
 	public String getIdFieldName() {
 		return idFieldName;
 	}
@@ -108,7 +113,15 @@ public class EntityInfo {
 	public List<FieldInfo> getAggregated() {
 		return aggregated;
 	}
-
+	public List<FieldInfo> getAggregatedQualified() {
+		if(isRelationship()) return aggregated;
+		return emptyFields;
+	}
+	public List<FieldInfo> getAggregatedUnqualified() {
+		if(!isRelationship()) return aggregated;
+		return emptyFields;
+	}
+	
 	public List<FieldInfo> getComposedCollections() {
 		return composedCollections;
 	}
@@ -371,5 +384,19 @@ public class EntityInfo {
 		}
 		return new ArrayList<String>(hashSet);
 	}
+
+	public Map<RelationKey, Relation> getRelationMap() {
+		return relationMap;
+	}
+	
+	public boolean isRelationship(){
+		return entity.hasAnnotation(RelationshipTable.class);
+	}
+	
+	public Collection<Relation> getRelations(){
+		return relationMap.values();
+	}
+	
+	
 
 }

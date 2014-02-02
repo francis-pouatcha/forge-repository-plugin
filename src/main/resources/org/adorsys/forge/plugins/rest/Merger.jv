@@ -25,6 +25,7 @@ public class ${entityName}Merger {
 
    
    public void bindComposed(final Set<${entityName}> entities){
+       if(entities==null)return;
 	   HashSet<${entityName}> oldCol = new HashSet<${entityName}>(entities);
 	   entities.clear();
 	   for (${entityName} entity : oldCol) {
@@ -34,6 +35,7 @@ public class ${entityName}Merger {
    }
 
    public void bindAggregated(final Set<${entityName}> entities){
+       if(entities==null)return;
 	   HashSet<${entityName}> oldCol = new HashSet<${entityName}>(entities);
 	   entities.clear();
 	   for (${entityName} entity : oldCol) {
@@ -52,8 +54,15 @@ public class ${entityName}Merger {
 	   return newEntity;
    }
    
-   public Set<${entityName}> unbind(final Set<${entityName}> entities){
-	   if(entities==null)return null;
-	   return new HashSet<${entityName}>();
+   public Set<${entityName}> unbind(final Set<${entityName}> entities, List<String> fieldList){
+      if (entities == null)
+         return null;
+      return new HashSet<${entityName}>();
+//       HashSet<${entityName}> cache = new HashSet<${entityName}>(entities);
+//       entities.clear();
+//       for (${entityName} entity : cache) {
+//  		entities.add(unbind(entity, fieldList));
+//       }
+//      return entities;
    }
 }

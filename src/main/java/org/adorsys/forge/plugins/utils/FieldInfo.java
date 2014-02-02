@@ -1,7 +1,9 @@
 package org.adorsys.forge.plugins.utils;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.forge.parser.java.Field;
@@ -26,6 +28,10 @@ public class FieldInfo {
 	private boolean associationManager;
 	
 	private String displayedFields;
+	
+	private String mappedBy;
+	
+	private Map<String, String> qualifiedDisplayFields = new HashMap<String, String>();
 	
 	public Field<JavaClass> getField() {
 		return field;
@@ -112,9 +118,37 @@ public class FieldInfo {
 	public void setDisplayedFields(String displayedFields) {
 		this.displayedFields = displayedFields;
 	}
+
+	public String getQualifiedDisplayedFields(String qualifier){
+		if(qualifiedDisplayFields.containsKey(qualifier)) return qualifiedDisplayFields.get(qualifier);
+		return displayedFields; 
+	}
 	
 	public boolean hasDisplayFields(){
 		return StringUtils.isNotBlank(displayedFields);
 	}
+		
+	public boolean hasQualifiedDisplayFields(String qualifier){
+		if(qualifiedDisplayFields.containsKey(qualifier)) return StringUtils.isNotBlank(qualifiedDisplayFields.get(qualifier));
+		return StringUtils.isNotBlank(displayedFields);
+	}
+	
+	public void putDisplayField(String qualifier, String displayFields){
+		qualifiedDisplayFields.put(qualifier, displayFields);
+	}
+	public Collection<String> getQualifiers(){
+		return qualifiedDisplayFields.keySet();
+	}
 
+	public String getMappedBy() {
+		return mappedBy;
+	}
+
+	public void setMappedBy(String mappedBy) {
+		this.mappedBy = mappedBy;
+	}
+	
+	public boolean hasMappedBy(){
+		return StringUtils.isNotBlank(this.mappedBy);
+	}
 }

@@ -1,6 +1,7 @@
 package org.adorsys.forge.plugins.rel;
 
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.enterprise.event.Event;
@@ -115,8 +116,9 @@ public class RelationshipPlugin implements Plugin {
 					"Entity already has a field named [" + targetQualifier
 							+ "]");
 		}
-		Field<JavaClass> sourceField = sourceEntityClass.addField("private Set<"+assocClass.getName()+"> "+ sourceQualifier+";");
+		Field<JavaClass> sourceField = sourceEntityClass.addField("private Set<"+assocClass.getName()+"> "+ sourceQualifier+ "= new HashSet<"+assocClass.getName()+">();");
 		sourceEntityClass.addImport(Set.class);
+		sourceEntityClass.addImport(HashSet.class);
 		
 		Annotation<JavaClass> oneToManySourceAnnotation = sourceField.addAnnotation(OneToMany.class);
 		oneToManySourceAnnotation.setStringValue("mappedBy", "source");
@@ -139,8 +141,9 @@ public class RelationshipPlugin implements Plugin {
 			sourceRelationshipAnnotation.setStringValue("targetQualifier",
 					targetQualifier);
 
-			Field<JavaClass> targetField = targetEntityClass.addField("private Set<"+assocClass.getName()+"> "+ targetQualifier+";");
+			Field<JavaClass> targetField = targetEntityClass.addField("private Set<"+assocClass.getName()+"> "+ targetQualifier+ "= new HashSet<"+assocClass.getName()+">();");
 			targetEntityClass.addImport(Set.class);
+			targetEntityClass.addImport(HashSet.class);
 
 			Annotation<JavaClass> oneToManyTargetAnnotation = targetField.addAnnotation(OneToMany.class);
 			oneToManyTargetAnnotation.setStringValue("mappedBy", "target");

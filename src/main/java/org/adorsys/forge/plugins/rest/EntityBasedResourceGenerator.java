@@ -2,13 +2,16 @@ package org.adorsys.forge.plugins.rest;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.adorsys.forge.plugins.repo.RepositoryFacet;
 import org.adorsys.forge.plugins.utils.EntityInfo;
+import org.adorsys.forge.plugins.utils.FieldInfo;
 import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
 import org.adorsys.forge.plugins.utils.PluginUtils;
 import org.adorsys.forge.plugins.utils.RepoGeneratedResources;
@@ -71,18 +74,32 @@ public class EntityBasedResourceGenerator {
 		mergerResource.setPackage(pluginUtils.getRestPackageName());
 		repoGeneratedResources.addToOthers(java.saveJavaSource(mergerResource));
 	    
-		String output = processor.processTemplate(map,
-				"org/adorsys/forge/plugins/rest/Endpoint.jv");
-		JavaClass restResource = JavaParser.parse(JavaClass.class, output);
+		String restOutput = processor.processTemplate(map,
+				"org/adorsys/forge/plugins/rest/Endpoint.ftl");
+		JavaClass restResource = JavaParser.parse(JavaClass.class, restOutput);
+		String ejbOutput = processor.processTemplate(map,
+				"org/adorsys/forge/plugins/rest/EJB.ftl");
+		JavaClass ejbResource = JavaParser.parse(JavaClass.class, ejbOutput);
 		restResource.addImport(entity.getQualifiedName());
+		ejbResource.addImport(entity.getQualifiedName());
 		/*
 		 * Add the jpa modelgen of this entity.
 		 */
 		restResource.addImport(entity.getQualifiedName()+"_");
 		restResource.addImport(entitySearch.getQualifiedName());
 		restResource.addImport(entitySearchResult.getQualifiedName());
-		restResource.addImport(repoResource.getQualifiedName());
+		ejbResource.addImport(repoResource.getQualifiedName());
 		restResource.setPackage(pluginUtils.getRestPackageName());
+		ejbResource.setPackage(pluginUtils.getRestPackageName());
+		List<FieldInfo> composedCollections = entityInfo.getComposedCollections();
+		if(!composedCollections.isEmpty()){
+			ejbResource.addImport(Set.class.getName());
+		}
+		for (FieldInfo fieldInfo : composedCollections) {
+			if(fieldInfo.getTargetEntity()!=null && !fieldInfo.getTargetEntity().getName().equals(entityInfo.getEntity().getQualifiedName())){
+				ejbResource.addImport(fieldInfo.getTargetEntity().getQualifiedName());
+			}
+		}
 		
 		if(!java.getJavaResource(restResource).exists()){
 			repoGeneratedResources.addToEndpoints(java
@@ -97,6 +114,21 @@ public class EntityBasedResourceGenerator {
 		} else {
 			ShellMessages.info(out, "Aborted rest endpoint generation for ["
 					+ entity.getQualifiedName() + "] Rest endpoint File exists.");
+		}
+
+		if(!java.getJavaResource(ejbResource).exists()){
+			repoGeneratedResources.addToOthers(java
+					.saveJavaSource(ejbResource));
+			ShellMessages.success(out, "Generated ejb for ["
+					+ entity.getQualifiedName() + "]");
+		} else if (override){
+			repoGeneratedResources.addToOthers(java
+					.saveJavaSource(ejbResource));
+			ShellMessages.success(out, "Generated ejb for ["
+					+ entity.getQualifiedName() + "] overiding existing file.");
+		} else {
+			ShellMessages.info(out, "Aborted ejb generation for ["
+					+ entity.getQualifiedName() + "] EJB File exists.");
 		}
 		
 		return restResource;

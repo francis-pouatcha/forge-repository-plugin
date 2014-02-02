@@ -40,7 +40,6 @@ public class ${sourceEntity.name}${targetEntity.name}Assoc implements Serializab
 	@Column(name = "sourceQualifier")
 	private String sourceQualifier;
 
-	@NotNull
 	@Column(name = "targetQualifier")
 	private String targetQualifier;
 
@@ -90,6 +89,10 @@ public class ${sourceEntity.name}${targetEntity.name}Assoc implements Serializab
 
 	public void setTargetQualifier(String targetQualifier) {
 		this.targetQualifier = targetQualifier;
+	}
+
+	public String getIdentifier(){
+		return "s_"+(sourceQualifier==null?"":sourceQualifier.trim())+"_t_"+(targetQualifier==null?"":targetQualifier.trim());
 	}
 
 	@Override
