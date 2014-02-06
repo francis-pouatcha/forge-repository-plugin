@@ -94,8 +94,6 @@ public class RelationshipPlugin implements Plugin {
 		} catch (FileNotFoundException e) {
 			throw new IllegalStateException(e);
 		}
-		
-		
 
 		JavaClass assocClass = relationshipGenerator.generateFrom(
 				sourceEntityClass, targetEntityClass);
