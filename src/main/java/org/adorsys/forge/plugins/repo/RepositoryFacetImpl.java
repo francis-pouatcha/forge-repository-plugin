@@ -2,6 +2,8 @@ package org.adorsys.forge.plugins.repo;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,7 @@ import javax.inject.Inject;
 
 import org.adorsys.forge.plugins.utils.BaseJavaEEFacet;
 import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
+import org.apache.commons.io.IOUtils;
 import org.jboss.forge.env.Configuration;
 import org.jboss.forge.env.ConfigurationFactory;
 import org.jboss.forge.parser.JavaParser;
@@ -23,6 +26,7 @@ import org.jboss.forge.project.facets.DependencyFacet;
 import org.jboss.forge.project.facets.JavaSourceFacet;
 import org.jboss.forge.project.facets.MetadataFacet;
 import org.jboss.forge.project.facets.ResourceFacet;
+import org.jboss.forge.resources.DirectoryResource;
 import org.jboss.forge.resources.FileResource;
 import org.jboss.forge.shell.PromptType;
 import org.jboss.forge.shell.ShellPrompt;
@@ -118,29 +122,59 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 					RepositoryFacet.REPO_REPO_CLASS_SUFFIX, repoSuffix);
 		}
 		
-		Map<Object, Object> map = new HashMap<Object, Object>();
-		String output = processor.processTemplate(map,
-				"org/adorsys/forge/plugins/repo/DataSourceProducer.jv");
-		JavaClass dataSourceProducer = JavaParser.parse(JavaClass.class, output);
-		dataSourceProducer.setPackage(projectConfiguration.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE));
-		final JavaSourceFacet java = project.getFacet(JavaSourceFacet.class);
-		try {
-			java.saveJavaSource(dataSourceProducer);
-		} catch (FileNotFoundException e) {
-			throw new IllegalStateException(e);
-		}		
+		createFile("org/adorsys/forge/plugins/repo/DataSourceProducer.jv", projectConfiguration.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE));
+		String lm = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "lm";
+		createFile("org/adorsys/forge/plugins/lm/AdpharmaLoginModule.ftl", lm);
+		createFile("org/adorsys/forge/plugins/lm/DeclarativeRolesContextListener.ftl", lm);
+		createFile("org/adorsys/forge/plugins/lm/LoginFailledServlet.ftl", lm);
+		createFile("org/adorsys/forge/plugins/lm/LoginFormServlet.ftl", lm);
+		createFile("org/adorsys/forge/plugins/lm/SecurityConstants.ftl", lm);
+		createFile("org/adorsys/forge/plugins/lm/SimpleGroup.ftl", lm);
+		createFile("org/adorsys/forge/plugins/lm/SimplePrincipal.ftl", lm);
+
+		String startup = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "startup";
+		createFile("org/adorsys/forge/plugins/startup/InitUserAccountService.ftl", startup);
 		
+		Map<Object, Object> map = new HashMap<Object, Object>();
 		String beansXMLRelativeFileName = "META-INF" + File.separator + "beans.xml";
 		ResourceFacet resources = project.getFacet(ResourceFacet.class);
 		FileResource<?> beansXmlFile = (FileResource<?>) resources.getResourceFolder().getChild(beansXMLRelativeFileName);
 		if(!beansXmlFile.exists()){
 			map = new HashMap<Object, Object>();
-			output = processor.processTemplate(map,
+			String output = processor.processTemplate(map,
 					"org/adorsys/forge/plugins/rest/beans.xml.jv");
 			resources.createResource(output.toCharArray(), beansXMLRelativeFileName);
 		}
 		
+		try {
+			DirectoryResource resourceFolder = resources.getResourceFolder();
+			DirectoryResource parent = (DirectoryResource) resourceFolder.getParent();
+			File srcMain = parent.getUnderlyingResourceObject();
+			File webinf = new File(srcMain, "webapp/WEB-INF/");
+			webinf.mkdirs();
+			String webxml = processor.processTemplate(map,
+					"org/adorsys/forge/plugins/lm/web.xml.ftl");
+			IOUtils.write(webxml, new FileOutputStream(new File(webinf, "web.xml")));
+			String jbosswebxml = processor.processTemplate(map,
+					"org/adorsys/forge/plugins/lm/jboss-web.xml.ftl");
+			IOUtils.write(jbosswebxml, new FileOutputStream(new File(webinf, "jboss-web.xml")));
+		} catch (IOException ioe){
+			throw new IllegalStateException(ioe);
+		}
 		return super.install();
+	}
+	
+	private void createFile(String file, String pkg){
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		String output = processor.processTemplate(map,file);
+		JavaClass klass = JavaParser.parse(JavaClass.class, output);
+		klass.setPackage(pkg);
+		final JavaSourceFacet java = project.getFacet(JavaSourceFacet.class);
+		try {
+			java.saveJavaSource(klass);
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException(e);
+		}		
 	}
 
 }
