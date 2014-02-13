@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import org.adorsys.forge.plugins.utils.BaseJavaEEFacet;
 import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.forge.env.Configuration;
 import org.jboss.forge.env.ConfigurationFactory;
 import org.jboss.forge.parser.JavaParser;
@@ -124,7 +125,7 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 		Map<Object, Object> map = new HashMap<Object, Object>();
 		MetadataFacet metadataFacet = project.getFacet(MetadataFacet.class);
 		map.put("topPackage", metadataFacet.getTopLevelPackage());
-		map.put("projectName", metadataFacet.getProjectName());
+		map.put("projectName", StringUtils.substringBefore(metadataFacet.getProjectName(), "."));
 		
 		createFile("org/adorsys/forge/plugins/repo/DataSourceProducer.jv", projectConfiguration.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE), map);
 		String lm = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "lm";
