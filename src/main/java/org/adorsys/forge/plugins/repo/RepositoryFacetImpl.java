@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import org.adorsys.forge.plugins.utils.BaseJavaEEFacet;
 import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jboss.forge.env.Configuration;
 import org.jboss.forge.env.ConfigurationFactory;
 import org.jboss.forge.parser.JavaParser;
@@ -122,26 +121,28 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 			projectConfiguration.setProperty(
 					RepositoryFacet.REPO_REPO_CLASS_SUFFIX, repoSuffix);
 		}
+		Map<Object, Object> map = new HashMap<Object, Object>();
+		MetadataFacet metadataFacet = project.getFacet(MetadataFacet.class);
+		map.put("topPackage", metadataFacet.getTopLevelPackage());
+		map.put("projectName", metadataFacet.getProjectName());
 		
-		createFile("org/adorsys/forge/plugins/repo/DataSourceProducer.jv", projectConfiguration.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE));
+		createFile("org/adorsys/forge/plugins/repo/DataSourceProducer.jv", projectConfiguration.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE), map);
 		String lm = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "lm";
-		createFile("org/adorsys/forge/plugins/lm/LoginModule.ftl", lm);
-		createFile("org/adorsys/forge/plugins/lm/DeclarativeRolesContextListener.ftl", lm);
-		createFile("org/adorsys/forge/plugins/lm/LoginFailledServlet.ftl", lm);
-		createFile("org/adorsys/forge/plugins/lm/LoginFormServlet.ftl", lm);
-		createFile("org/adorsys/forge/plugins/lm/SecurityConstants.ftl", lm);
-		createFile("org/adorsys/forge/plugins/lm/SimpleGroup.ftl", lm);
-		createFile("org/adorsys/forge/plugins/lm/SimplePrincipal.ftl", lm);
+		createFile("org/adorsys/forge/plugins/lm/LoginModule.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/DeclarativeRolesContextListener.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/LoginFailledServlet.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/LoginFormServlet.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/SecurityConstants.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/SimpleGroup.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/SimplePrincipal.ftl", lm, map);
 
 		String startup = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "startup";
-		createFile("org/adorsys/forge/plugins/startup/InitUserAccountService.ftl", startup);
+		createFile("org/adorsys/forge/plugins/startup/InitUserAccountService.ftl", startup, map);
 		
-		Map<Object, Object> map = new HashMap<Object, Object>();
 		String beansXMLRelativeFileName = "META-INF" + File.separator + "beans.xml";
 		ResourceFacet resources = project.getFacet(ResourceFacet.class);
 		FileResource<?> beansXmlFile = (FileResource<?>) resources.getResourceFolder().getChild(beansXMLRelativeFileName);
 		if(!beansXmlFile.exists()){
-			map = new HashMap<Object, Object>();
 			String output = processor.processTemplate(map,
 					"org/adorsys/forge/plugins/rest/beans.xml.jv");
 			resources.createResource(output.toCharArray(), beansXMLRelativeFileName);
@@ -165,11 +166,7 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 		return super.install();
 	}
 	
-	private void createFile(String file, String pkg){
-		Map<Object, Object> map = new HashMap<Object, Object>();
-		MetadataFacet metadataFacet = project.getFacet(MetadataFacet.class);
-		map.put("topPackage", metadataFacet.getTopLevelPackage());
-		map.put("projectName", metadataFacet.getProjectName());
+	private void createFile(String file, String pkg, Map<Object, Object> map){
 		String output = processor.processTemplate(map,file);
 		JavaClass klass = JavaParser.parse(JavaClass.class, output);
 		klass.setPackage(pkg);
