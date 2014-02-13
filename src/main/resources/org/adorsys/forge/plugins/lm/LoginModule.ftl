@@ -1,4 +1,4 @@
-package org.adorsys.adpharma.server.lm;
+package ${topPackage}.lm;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -23,15 +23,15 @@ import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
-import org.adorsys.adpharma.server.jpa.RoleName;
-import org.adorsys.adpharma.server.jpa.Users;
-import org.adorsys.adpharma.server.jpa.UsersRoleNameAssoc;
-import org.adorsys.adpharma.server.jpa.UsersRoleNameAssoc_;
-import org.adorsys.adpharma.server.jpa.Users_;
-import org.adorsys.adpharma.server.rest.UsersEJB;
-import org.adorsys.adpharma.server.rest.UsersRoleNameAssocEJB;
+import ${topPackage}.jpa.RoleName;
+import ${topPackage}.jpa.Users;
+import ${topPackage}.jpa.UsersRoleNameAssoc;
+import ${topPackage}.jpa.UsersRoleNameAssoc_;
+import ${topPackage}.jpa.Users_;
+import ${topPackage}.rest.UsersEJB;
+import ${topPackage}.rest.UsersRoleNameAssocEJB;
 
-public class AdpharmaLoginModule implements LoginModule {
+public class ${projectName?cap_first}LoginModule implements LoginModule {
 
 	protected Subject subject;
 	protected CallbackHandler callbackHandler;

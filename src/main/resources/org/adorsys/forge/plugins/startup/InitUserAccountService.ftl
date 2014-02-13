@@ -1,20 +1,17 @@
-package org.adorsys.adpharma.server.startup;
-
-import java.util.Date;
+package ${topPackage}.startup;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 
-import org.adorsys.adpharma.server.jpa.Gender;
-import org.adorsys.adpharma.server.jpa.RoleName;
-import org.adorsys.adpharma.server.jpa.Users;
-import org.adorsys.adpharma.server.jpa.UsersRoleNameAssoc;
-import org.adorsys.adpharma.server.rest.RoleNameEJB;
-import org.adorsys.adpharma.server.rest.UsersEJB;
-import org.adorsys.adpharma.server.rest.UsersRoleNameAssocEJB;
-import org.apache.commons.lang3.time.DateUtils;
+import ${topPackage}.jpa.Gender;
+import ${topPackage}.jpa.RoleName;
+import ${topPackage}.jpa.Users;
+import ${topPackage}.jpa.UsersRoleNameAssoc;
+import ${topPackage}.rest.RoleNameEJB;
+import ${topPackage}.rest.UsersEJB;
+import ${topPackage}.rest.UsersRoleNameAssocEJB;
 
 @Singleton
 @Startup
@@ -46,9 +43,6 @@ public class InitUserAccountService {
 		adminRoleName = roleNameEJB.create(adminRoleName);
 		
 		Users adminUser = new Users();
-		adminUser.setAccountExpiration(DateUtils.addHours(new Date(), 1));
-		adminUser.setAccountLocked(false);
-		adminUser.setDisableLogin(false);
 		adminUser.setGender(Gender.NEUTRAL);
 		adminUser.setFirstName("Admin First Name");
 		adminUser.setLastName("Admin Last Name");

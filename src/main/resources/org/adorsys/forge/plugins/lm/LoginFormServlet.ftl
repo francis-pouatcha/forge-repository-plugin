@@ -1,15 +1,12 @@
-package org.adorsys.adpharma.server.lm;
+package ${topPackage}.lm;
 
 import java.io.IOException;
 
-import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.adorsys.adpharma.server.startup.InitUserAccountService;
 
 /**
  * This is the representation of the login form for a from login process.
@@ -21,9 +18,6 @@ import org.adorsys.adpharma.server.startup.InitUserAccountService;
 public class LoginFormServlet extends HttpServlet {
 
 	private static final long serialVersionUID = -3629781750937980222L;
-
-	@EJB
-	private InitUserAccountService initUserAccountService;
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp)

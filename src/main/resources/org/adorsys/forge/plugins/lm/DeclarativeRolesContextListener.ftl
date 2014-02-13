@@ -1,4 +1,4 @@
-package org.adorsys.adpharma.server.lm;
+package ${topPackage}.lm;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;

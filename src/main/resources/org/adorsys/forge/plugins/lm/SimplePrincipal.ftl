@@ -1,4 +1,4 @@
-package org.adorsys.adpharma.server.lm;
+package ${topPackage}.lm;
 
 import java.io.Serializable;
 import java.security.Principal;

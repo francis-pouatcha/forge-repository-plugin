@@ -1,3 +1,3 @@
 <jboss-web>
-    <security-domain>java:/jaas/adpharma</security-domain>
+    <security-domain>java:/jaas/${projectName}</security-domain>
 </jboss-web>

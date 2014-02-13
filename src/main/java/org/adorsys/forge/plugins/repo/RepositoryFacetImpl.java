@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import org.adorsys.forge.plugins.utils.BaseJavaEEFacet;
 import org.adorsys.forge.plugins.utils.FreemarkerTemplateProcessor;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.forge.env.Configuration;
 import org.jboss.forge.env.ConfigurationFactory;
 import org.jboss.forge.parser.JavaParser;
@@ -124,7 +125,7 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 		
 		createFile("org/adorsys/forge/plugins/repo/DataSourceProducer.jv", projectConfiguration.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE));
 		String lm = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "lm";
-		createFile("org/adorsys/forge/plugins/lm/AdpharmaLoginModule.ftl", lm);
+		createFile("org/adorsys/forge/plugins/lm/LoginModule.ftl", lm);
 		createFile("org/adorsys/forge/plugins/lm/DeclarativeRolesContextListener.ftl", lm);
 		createFile("org/adorsys/forge/plugins/lm/LoginFailledServlet.ftl", lm);
 		createFile("org/adorsys/forge/plugins/lm/LoginFormServlet.ftl", lm);
@@ -166,6 +167,9 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 	
 	private void createFile(String file, String pkg){
 		Map<Object, Object> map = new HashMap<Object, Object>();
+		MetadataFacet metadataFacet = project.getFacet(MetadataFacet.class);
+		map.put("topPackage", metadataFacet.getTopLevelPackage());
+		map.put("projectName", metadataFacet.getProjectName());
 		String output = processor.processTemplate(map,file);
 		JavaClass klass = JavaParser.parse(JavaClass.class, output);
 		klass.setPackage(pkg);
