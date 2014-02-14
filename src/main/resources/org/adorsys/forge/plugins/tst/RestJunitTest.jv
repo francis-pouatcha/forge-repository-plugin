@@ -556,8 +556,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 		   	    searchValue =  entity.get${searchFieldName?cap_first}();
 		   } else {
 		   		// create all 7 objects with the same field value
-		   		${entityInfo.importIfRequired(searchFieldName)}
-		   		entity.set${searchFieldName?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
+		   		entity.set${searchFieldName?cap_first}((${entityInfo.getFieldType(searchFieldName)})searchValue);
 		   }
 	
 		   <#list entityInfo.testAggregated as aggregatedField>
@@ -574,7 +573,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   */
 	   ${entityInfo.entity.getName()} searchEntity = new ${entityInfo.entity.getName()}();
 	   ${entityInfo.importIfRequired(searchFieldName)}
-	   searchEntity.set${entityInfo.getSimpleField(searchFieldName).getName()?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
+	   searchEntity.set${searchFieldName?cap_first}((${entityInfo.getFieldType(searchFieldName)})searchValue);
        ${entityInfo.entity.getName()}SearchInput searchInput = new ${entityInfo.entity.getName()}SearchInput();
        searchInput.setEntity(searchEntity);
        searchInput.getFieldNames().add(searchFieldName);
@@ -636,7 +635,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 		   } else {
 		   		// create all 7 objects with the same field value
 	   			${entityInfo.importIfRequired(searchFieldName)}
-		   		entity.set${searchFieldName?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
+		   		entity.set${searchFieldName?cap_first}((${entityInfo.getFieldType(searchFieldName)})searchValue);
 		   }
 	
 		   <#list entityInfo.testAggregated as aggregatedField>
@@ -653,7 +652,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   */
 	   ${entityInfo.entity.getName()} searchEntity = new ${entityInfo.entity.getName()}();
 	   ${entityInfo.importIfRequired(searchFieldName)}
-	   searchEntity.set${entityInfo.getSimpleField(searchFieldName).getName()?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
+	   searchEntity.set${searchFieldName?cap_first}((${entityInfo.getFieldType(searchFieldName)})searchValue);
        ${entityInfo.entity.getName()}SearchInput searchInput = new ${entityInfo.entity.getName()}SearchInput();
        searchInput.setEntity(searchEntity);
        searchInput.getFieldNames().add(searchFieldName);
@@ -715,7 +714,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 		   } else {
 		   		// create all 7 objects with the same field value
 		   		${entityInfo.importIfRequired(searchFieldName)}
-		   		entity.set${searchFieldName?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
+		   		entity.set${searchFieldName?cap_first}((${entityInfo.getFieldType(searchFieldName)})searchValue);
 		   }
 	
 		   <#list entityInfo.testAggregated as aggregatedField>
@@ -732,7 +731,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   */
 	   ${entityInfo.entity.getName()} searchEntity = new ${entityInfo.entity.getName()}();
 	   ${entityInfo.importIfRequired(searchFieldName)}
-	   searchEntity.set${entityInfo.getSimpleField(searchFieldName).getName()?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
+	   searchEntity.set${searchFieldName?cap_first}((${entityInfo.getFieldType(searchFieldName)})searchValue);
        ${entityInfo.entity.getName()}SearchInput searchInput = new ${entityInfo.entity.getName()}SearchInput();
        searchInput.setEntity(searchEntity);
        searchInput.getFieldNames().add(searchFieldName);
@@ -791,7 +790,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 		   } else {
 		   		// create all 7 objects with the same field value
 		   		${entityInfo.importIfRequired(searchFieldName)}
-		   		entity.set${searchFieldName?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
+		   		entity.set${searchFieldName?cap_first}((${entityInfo.getFieldType(searchFieldName)})searchValue);
 		   }
 	
 		   <#list entityInfo.testAggregated as aggregatedField>
@@ -808,7 +807,7 @@ public class ${entityInfo.entity.getName()}ServiceTest
 	   */
 	   ${entityInfo.entity.getName()} searchEntity = new ${entityInfo.entity.getName()}();
 	   ${entityInfo.importIfRequired(searchFieldName)}
-	   searchEntity.set${entityInfo.getSimpleField(searchFieldName).getName()?cap_first}((${entityInfo.getSimpleField(searchFieldName).getType()})searchValue);
+	   searchEntity.set${searchFieldName?cap_first}((${entityInfo.getFieldType(searchFieldName)})searchValue);
        ${entityInfo.entity.getName()}SearchInput searchInput = new ${entityInfo.entity.getName()}SearchInput();
        searchInput.setEntity(searchEntity);
        searchInput.getFieldNames().add(searchFieldName);

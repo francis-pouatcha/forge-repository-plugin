@@ -71,7 +71,7 @@ public class ${entityInfo.entity.getName()}DoD {
 	   </#list>
 	   <#list entityInfo.simpleLongFields as field>
 	   <#if entityInfo.containsField(field)>
-	   entity.set${simpleLongField.getName()?cap_first}(random.nextLong());
+	   entity.set${field.getName()?cap_first}(random.nextLong());
 	   result.add("${field.getName()}");
 	   </#if>
 

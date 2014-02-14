@@ -277,6 +277,18 @@ public class EntityInfo {
 		return allSimpleFields.iterator().next();
 	}
 	
+	public String getFieldType(String fieldName){
+		FieldInfo simpleField = getSimpleField(fieldName);
+		if(simpleField!=null) return simpleField.getType();
+		for (FieldInfo fieldInfo : aggregated) {
+			if(fieldInfo.getName().equals(fieldName)) return fieldInfo.getType();
+		}
+		for (FieldInfo fieldInfo : composed) {
+			if(fieldInfo.getName().equals(fieldName)) return fieldInfo.getType();
+		}
+		return null;
+	}
+
 	public FieldInfo getSimpleField(String fieldName){
 		for (FieldInfo field : allSimpleFields) {
 			if(field.getField().getName().equals(fieldName)) return field;
@@ -298,7 +310,9 @@ public class EntityInfo {
 		if(simpleFieldTypeImport.contains(qualifiedType)) return;
 		if(qualifiedType.startsWith("java.lang"))return;
 		simpleFieldTypeImport.add(qualifiedType);
+		return;
 	}
+	
 
 	public List<String> getSimpleFieldTypeImport() {
 		return simpleFieldTypeImport;
