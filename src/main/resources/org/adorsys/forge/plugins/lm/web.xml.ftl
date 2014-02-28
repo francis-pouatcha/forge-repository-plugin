@@ -10,7 +10,8 @@
 	xmlns="http://java.sun.com/xml/ns/javaee"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5">
-
+	
+	<#list loginRoles as loginRole>
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>All Access</web-resource-name>
@@ -23,14 +24,15 @@
 			<http-method>GET</http-method>
 			<http-method>POST</http-method>
 		</web-resource-collection>
-		<auth-constraint >
-			<role-name>user</role-name>
+		<auth-constraint>
+			<role-name>${loginRole}</role-name>
 		</auth-constraint>
 
 		<user-data-constraint>
 			<transport-guarantee>NONE</transport-guarantee>
 		</user-data-constraint>
 	</security-constraint>
+	</#list>
 	<login-config>
 		<auth-method>FORM</auth-method>
 		<form-login-config>

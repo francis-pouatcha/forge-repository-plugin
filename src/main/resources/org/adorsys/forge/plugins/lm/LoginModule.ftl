@@ -23,13 +23,13 @@ import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
-import ${topPackage}.jpa.RoleName;
-import ${topPackage}.jpa.Users;
-import ${topPackage}.jpa.UsersRoleNameAssoc;
-import ${topPackage}.jpa.UsersRoleNameAssoc_;
-import ${topPackage}.jpa.Users_;
-import ${topPackage}.rest.UsersEJB;
-import ${topPackage}.rest.UsersRoleNameAssocEJB;
+import ${topPackage}.jpa.${RoleTable};
+import ${topPackage}.jpa.${LoginTable};
+import ${topPackage}.jpa.${LoginTable}${RoleTable}Assoc;
+import ${topPackage}.jpa.${LoginTable}${RoleTable}Assoc_;
+import ${topPackage}.jpa.${LoginTable}_;
+import ${topPackage}.rest.${LoginTable}EJB;
+import ${topPackage}.rest.${LoginTable}${RoleTable}AssocEJB;
 
 public class ${projectName?cap_first}LoginModule implements LoginModule {
 
@@ -48,41 +48,12 @@ public class ${projectName?cap_first}LoginModule implements LoginModule {
 	/** the principal to use when a null username and password are seen */
 	protected Principal unauthenticatedIdentity;
 
-	private UsersEJB usersEJB;
+	private ${LoginTable}EJB loginEJB;
 
-	private UsersRoleNameAssocEJB usersRoleNameAssocEJB;
+	private ${LoginTable}${RoleTable}AssocEJB assocEJB;
 
-	private Users user;
+	private ${LoginTable} account;
 
-	// --- Begin LoginModule interface methods
-	/**
-	 * Initializes the login module. This stores the subject, callbackHandler
-	 * and sharedState and options for the login session. Subclasses should
-	 * override if they need to process their own options. A call to
-	 * super.initialize(...) must be made in the case of an override.
-	 * <p>
-	 * 
-	 * @option password-stacking: If this is set to "useFirstPass", the login
-	 *         identity will be taken from the
-	 *         <code>javax.security.auth.login.name</code> value of the
-	 *         sharedState map, and the proof of identity from the
-	 *         <code>javax.security.auth.login.password</code> value of the
-	 *         sharedState map.
-	 * @option principalClass: A Principal implementation that support actor
-	 *         taking a String argument for the princpal name.
-	 * @option unauthenticatedIdentity: the name of the principal to assign and
-	 *         authenticate when a null username and password are seen.
-	 * 
-	 * @param subject
-	 *            the Subject to update after a successful login.
-	 * @param callbackHandler
-	 *            the CallbackHandler that will be used to obtain the the user
-	 *            identity and credentials.
-	 * @param sharedState
-	 *            a Map shared between all configured login module instances
-	 * @param options
-	 *            the parameters passed to the login module.
-	 */
 	@Override
 	public void initialize(Subject subject, CallbackHandler callbackHandler,
 			Map<String, ?> sharedState, Map<String, ?> options) {
@@ -90,9 +61,9 @@ public class ${projectName?cap_first}LoginModule implements LoginModule {
 		InitialContext initialContext;
 		try {
 			initialContext = new InitialContext();
-			usersEJB = (UsersEJB) initialContext.lookup("java:module/UsersEJB");
-			usersRoleNameAssocEJB = (UsersRoleNameAssocEJB) initialContext
-					.lookup("java:module/UsersRoleNameAssocEJB");
+			loginEJB = (${LoginTable}EJB) initialContext.lookup("java:module/${LoginTable}EJB");
+			assocEJB = (${LoginTable}${RoleTable}AssocEJB) initialContext
+					.lookup("java:module/${LoginTable}${RoleTable}AssocEJB");
 		} catch (NamingException e1) {
 			throw new IllegalStateException(e1);
 		}
@@ -140,18 +111,17 @@ public class ${projectName?cap_first}LoginModule implements LoginModule {
 			throw new IllegalStateException(e);
 		}
 
-		String userName = nameCallback.getName();
-		Users retrieveUsers = retrieveUsers(userName);
+		${LoginTable} retrievedAccount = retrieveAccount(nameCallback.getName());
 		char[] password = passwordCallback.getPassword();
-		if (!new String(password).equals(retrieveUsers.getPassword()))
+		if (!new String(password).equals(retrievedAccount.getPassword()))
 			return false;
-		user = retrieveUsers;
+		account = retrievedAccount;
 		return true;
 	}
 
 	@Override
 	public boolean commit() throws LoginException {
-		if (user == null)
+		if (account == null)
 			return false;
 
 		/*
@@ -164,7 +134,7 @@ public class ${projectName?cap_first}LoginModule implements LoginModule {
 		/*
 		 * The user identity.
 		 */
-		Principal identity = new SimplePrincipal(user.getUserName());
+		Principal identity = new SimplePrincipal(account.getLoginName());
 		principals.add(identity);
 		
 		// get the CallerPrincipal group
@@ -198,7 +168,7 @@ public class ${projectName?cap_first}LoginModule implements LoginModule {
 	public boolean abort() throws LoginException {
 		if (trace)
 			log.finer("abort");
-		user = null;
+		account = null;
 		return true;
 	}
 
@@ -215,32 +185,32 @@ public class ${projectName?cap_first}LoginModule implements LoginModule {
 		return true;
 	}
 
-	private Users retrieveUsers(String userName) throws FailedLoginException {
-		Users entity = new Users();
-		entity.setUserName(userName);
+	private ${LoginTable} retrieveAccount(String loginName) throws FailedLoginException {
+		${LoginTable} entity = new ${LoginTable}();
+		entity.setLoginName(loginName);
 		@SuppressWarnings("rawtypes")
-		SingularAttribute[] attributes = new SingularAttribute[] { Users_.userName };
+		SingularAttribute[] attributes = new SingularAttribute[] { ${LoginTable}_.loginName };
 		@SuppressWarnings("unchecked")
-		List<Users> found = usersEJB.findBy(entity, 0, 1, attributes);
+		List<${LoginTable}> found = loginEJB.findBy(entity, 0, 1, attributes);
 		if (found.isEmpty()) {
 			throw new FailedLoginException(
 					"PB00019: Processing Failed: No matching username found with user name: "
-							+ userName);
+							+ loginName);
 		}
 		return found.iterator().next();
 	}
 
 	private Group[] getRoleSets() {
-		UsersRoleNameAssoc entity = new UsersRoleNameAssoc();
-		entity.setSource(user);
+		${LoginTable}${RoleTable}Assoc entity = new ${LoginTable}${RoleTable}Assoc();
+		entity.setSource(account);
 		@SuppressWarnings("rawtypes")
-		SingularAttribute[] attributes = new SingularAttribute[] { UsersRoleNameAssoc_.source };
+		SingularAttribute[] attributes = new SingularAttribute[] { ${LoginTable}${RoleTable}Assoc_.source };
 		@SuppressWarnings("unchecked")
-		List<UsersRoleNameAssoc> found = usersRoleNameAssocEJB.findBy(entity,
-				0, 1, attributes);
+		List<${LoginTable}${RoleTable}Assoc> found = assocEJB.findBy(entity,
+				0, -1, attributes);
 		SimpleGroup simpleGroup = new SimpleGroup(SecurityConstants.ROLES_GROUP);
-		for (UsersRoleNameAssoc usersRoleNameAssoc : found) {
-			RoleName target = usersRoleNameAssoc.getTarget();
+		for (${LoginTable}${RoleTable}Assoc assoc : found) {
+			${RoleTable} target = assoc.getTarget();
 			simpleGroup.addMember(new SimplePrincipal(target.getName()));
 		}
 

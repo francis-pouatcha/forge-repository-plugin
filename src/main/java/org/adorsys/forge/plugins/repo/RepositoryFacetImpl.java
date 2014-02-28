@@ -128,18 +128,9 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 		map.put("projectName", StringUtils.substringBefore(metadataFacet.getProjectName(), "."));
 		
 		createFile("org/adorsys/forge/plugins/repo/DataSourceProducer.jv", projectConfiguration.getString(RepositoryFacet.REPO_REPO_CLASS_PACKAGE), map);
-		String lm = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "lm";
-		createFile("org/adorsys/forge/plugins/lm/LoginModule.ftl", lm, map);
-		createFile("org/adorsys/forge/plugins/lm/DeclarativeRolesContextListener.ftl", lm, map);
-		createFile("org/adorsys/forge/plugins/lm/LoginFailledServlet.ftl", lm, map);
-		createFile("org/adorsys/forge/plugins/lm/LoginFormServlet.ftl", lm, map);
-		createFile("org/adorsys/forge/plugins/lm/SecurityConstants.ftl", lm, map);
-		createFile("org/adorsys/forge/plugins/lm/SimpleGroup.ftl", lm, map);
-		createFile("org/adorsys/forge/plugins/lm/SimplePrincipal.ftl", lm, map);
-
-		String startup = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "startup";
-		createFile("org/adorsys/forge/plugins/startup/InitUserAccountService.ftl", startup, map);
-		
+//
+//
+//
 		String beansXMLRelativeFileName = "META-INF" + File.separator + "beans.xml";
 		ResourceFacet resources = project.getFacet(ResourceFacet.class);
 		FileResource<?> beansXmlFile = (FileResource<?>) resources.getResourceFolder().getChild(beansXMLRelativeFileName);
@@ -147,22 +138,6 @@ public class RepositoryFacetImpl extends BaseJavaEEFacet implements
 			String output = processor.processTemplate(map,
 					"org/adorsys/forge/plugins/rest/beans.xml.jv");
 			resources.createResource(output.toCharArray(), beansXMLRelativeFileName);
-		}
-		
-		try {
-			DirectoryResource resourceFolder = resources.getResourceFolder();
-			DirectoryResource parent = (DirectoryResource) resourceFolder.getParent();
-			File srcMain = parent.getUnderlyingResourceObject();
-			File webinf = new File(srcMain, "webapp/WEB-INF/");
-			webinf.mkdirs();
-			String webxml = processor.processTemplate(map,
-					"org/adorsys/forge/plugins/lm/web.xml.ftl");
-			IOUtils.write(webxml, new FileOutputStream(new File(webinf, "web.xml")));
-			String jbosswebxml = processor.processTemplate(map,
-					"org/adorsys/forge/plugins/lm/jboss-web.xml.ftl");
-			IOUtils.write(jbosswebxml, new FileOutputStream(new File(webinf, "jboss-web.xml")));
-		} catch (IOException ioe){
-			throw new IllegalStateException(ioe);
 		}
 		return super.install();
 	}
