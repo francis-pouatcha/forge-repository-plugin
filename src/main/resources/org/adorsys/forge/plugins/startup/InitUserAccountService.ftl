@@ -2,7 +2,7 @@ package ${topPackage}.startup;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -21,10 +21,13 @@ import ${topPackage}.jpa.${LoginTable};
 import ${topPackage}.jpa.${LoginTable}${RoleTable}Assoc;
 import ${topPackage}.jpa.${PermissionActionEnum};
 import ${topPackage}.jpa.${PermissionTable};
+import ${topPackage}.jpa.${PermissionTable}_;
+import ${topPackage}.jpa.${RoleTable}${PermissionTable}Assoc;
 import ${topPackage}.rest.${RoleTable}EJB;
 import ${topPackage}.rest.${LoginTable}EJB;
 import ${topPackage}.rest.${PermissionTable}EJB;
 import ${topPackage}.rest.${LoginTable}${RoleTable}AssocEJB;
+import ${topPackage}.rest.${RoleTable}${PermissionTable}AssocEJB;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,19 +47,16 @@ public class InitUserAccountService {
 
 	@Inject
 	private ${PermissionTable}EJB permissionEJB;
+
+	@Inject
+	private ${RoleTable}${PermissionTable}AssocEJB roleNamePermissionNameAssocEJB;
 	
 	@PostConstruct
 	protected void postConstruct(){
 
-		${RoleEnum}[] roleEnums = ${RoleEnum}.values();
-		for (${RoleEnum} roleEnum : roleEnums) {
-			${RoleTable} role = new ${RoleTable}();
-			role.set${roleNameField?cap_first}(roleEnum.name());
-			role = roleEJB.create(role);
-		}		
-
       	Properties logins = new Properties();
       	Properties roles = new Properties();
+		Properties permissions = new Properties();
       	InputStream loginStream = this.getClass().getClassLoader().getResourceAsStream("logins.properties");
       	if(loginStream !=null){
       		try {
@@ -65,10 +65,47 @@ public class InitUserAccountService {
 	    	  	if(roleStream!=null){
 	    			roles.load(roleStream);
 	    	  	}
+				InputStream permissionStream = this.getClass().getClassLoader()
+						.getResourceAsStream("permissions.properties");
+				if (permissionStream != null) {
+					permissions.load(permissionStream);
+				}
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			}
       	}
+
+      	<#list jpaEntities as entityFqn>
+      	createPermission("${entityFqn}");
+      	</#list>
+
+		${RoleEnum}[] roleEnums = ${RoleEnum}.values();
+		for (${RoleEnum} roleEnum : roleEnums) {
+			${RoleTable} role = new ${RoleTable}();
+			role.set${roleNameField?cap_first}(roleEnum.name());
+			role = roleEJB.create(role);
+
+			String permissionString = (String) permissions.get(role.getName());
+			if (StringUtils.isBlank(permissionString))
+				continue;
+			String[] perms = permissionString.split(",");
+			for (String perm : perms) {
+				String permName = StringUtils.substringBefore(perm, "(");
+				if (StringUtils.isBlank(permName))
+					continue;
+				String action = null;
+				if (perm.contains("(")) {
+					action = StringUtils.substringAfter(perm, "(");
+					action = StringUtils.substringBefore(action, ")");
+				}
+
+				addPermission(role.getName(), permName, action);
+			}
+
+		}
+
+
+      	
       	
       	Set<Entry<Object,Object>> loginSet = logins.entrySet();
       	for (Entry<Object, Object> entry : loginSet) {
@@ -82,7 +119,6 @@ public class InitUserAccountService {
     	  	String roleNames = roles.getProperty(loginName);
     	  	if(StringUtils.isBlank(roleNames)) continue;
     	  	String[] split = roleNames.split(",");
-    	  	List<String> roleList = new ArrayList<String>(split.length);
     	  	for (String roleName : split) {
     	  		roleName = roleName.trim();
     	  		${RoleTable} searchRole = new ${RoleTable}();
@@ -99,10 +135,6 @@ public class InitUserAccountService {
 				roleAssoc = assocEJB.create(roleAssoc);
 			}
       	}
-      	
-      	<#list jpaEntities as entityFqn>
-      	createPermission("${entityFqn}");
-      	</#list>
 	}
 	
    private void createPermission(String entityFqn){
@@ -119,5 +151,32 @@ public class InitUserAccountService {
 	   entity.set${permissionNameField?cap_first}(entityFqn);
 	   permissionEJB.create(entity);
    }
+
+
+	private void addPermission(String roleName, String permName, String action) {
+		${PermissionActionEnum} permissionActionEnum = ${PermissionActionEnum}.valueOf(action);
+		${PermissionTable} entity = new ${PermissionTable}();
+		entity.setAction(permissionActionEnum);
+		entity.setName(permName);
+		
+		List<${PermissionTable}> permFound = permissionEJB.findBy(entity, 0, 1, new SingularAttribute[] { ${PermissionTable}_.name, ${PermissionTable}_.action });
+		if(permFound.isEmpty()) throw new IllegalStateException("Permission with name " + permName + " and action " + action + " not found");
+		${PermissionTable} permissionName = permFound.iterator().next();
+		
+		${RoleTable} searchRole = new ${RoleTable}();
+		searchRole.setName(roleName);
+		List<${RoleTable}> roleFound = roleEJB.findBy(searchRole, 0, 1,
+				new SingularAttribute[] { ${RoleTable}_.name });
+		if (roleFound.isEmpty())
+			throw new IllegalStateException("${RoleTable} with name "
+					+ roleName + " not found.");
+		${RoleTable} role = roleFound.iterator().next();
+		${RoleTable}${PermissionTable}Assoc roleNamePermissionNameAssoc = new ${RoleTable}${PermissionTable}Assoc();
+		roleNamePermissionNameAssoc.setSource(role);
+		roleNamePermissionNameAssoc.setTarget(permissionName);
+		roleNamePermissionNameAssoc.setSourceQualifier("permissions");
+		roleNamePermissionNameAssoc.setTargetQualifier("source");
+		roleNamePermissionNameAssocEJB.create(roleNamePermissionNameAssoc);
+	}
 	
 }

@@ -445,7 +445,7 @@ public class PluginUtils {
 				}
 				return;
 			} else {
-				throw new IllegalStateException("Missing association annotation.");
+				throw new IllegalStateException("Missing association annotation. " + field);
 			}
 		}
 		
