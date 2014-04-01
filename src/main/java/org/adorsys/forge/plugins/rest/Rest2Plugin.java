@@ -255,6 +255,9 @@ public class Rest2Plugin implements Plugin {
 		createFile("org/adorsys/forge/plugins/lm/SecurityConstants.ftl", lm, map);
 		createFile("org/adorsys/forge/plugins/lm/SimpleGroup.ftl", lm, map);
 		createFile("org/adorsys/forge/plugins/lm/SimplePrincipal.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/PermissionQueryEndpoint.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/PingEndpoint.ftl", lm, map);
+		createFile("org/adorsys/forge/plugins/lm/LogoutServlet.ftl", lm, map);
 
 		String startup = project.getFacet(MetadataFacet.class).getTopLevelPackage() + "." + "startup";
 		createFile("org/adorsys/forge/plugins/startup/InitUserAccountService.ftl", startup, map);
